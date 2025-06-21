@@ -1,22 +1,26 @@
-﻿<!-- UI/Views/BillOfMaterialsView.xaml -->
-<!-- *** تحديث: تمت إضافة أزرار النسخ والطباعة *** -->
-<UserControl x:Class="GoodMorningFactory.UI.Views.BillOfMaterialsView"
+﻿<UserControl x:Class="GoodMorningFactory.UI.Views.BillOfMaterialsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800"
              Background="#F5F5F5" FlowDirection="RightToLeft">
+
+    <UserControl.DataContext>
+        <vm:BillOfMaterialsViewModel/>
+    </UserControl.DataContext>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Button Content="➕ إنشاء قائمة مكونات جديدة" Grid.Row="0" HorizontalAlignment="Left" Margin="5" Padding="10,5" Click="AddBomButton_Click"/>
+        <Button Content="➕ إنشاء قائمة مكونات جديدة" Grid.Row="0" HorizontalAlignment="Left" Margin="5" Padding="10,5" Command="{Binding AddBomCommand}"/>
 
-        <DataGrid x:Name="BomDataGrid" Grid.Row="1" Margin="5" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
+        <DataGrid ItemsSource="{Binding Boms}" Grid.Row="1" Margin="5" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="المنتج النهائي" Binding="{Binding FinishedGood.Name}" Width="2*"/>
                 <DataGridTextColumn Header="الوصف" Binding="{Binding Description}" Width="3*"/>
@@ -24,12 +28,10 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <Button Content="تعديل" Margin="2" Click="EditButton_Click"/>
-                                <!-- *** بداية التحديث: إضافة الأزرار الجديدة *** -->
-                                <Button Content="نسخ" Margin="2" Click="CopyButton_Click" Background="LightSkyBlue"/>
-                                <Button Content="طباعة" Margin="2" Click="PrintButton_Click" Background="LightGray"/>
-                                <!-- *** نهاية التحديث *** -->
-                                <Button Content="حذف" Margin="2" Click="DeleteButton_Click" Background="LightCoral"/>
+                                <Button Content="تعديل" Margin="2" Command="{Binding DataContext.EditBomCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                <Button Content="نسخ" Margin="2" Command="{Binding DataContext.CopyBomCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Background="LightSkyBlue"/>
+                                <Button Content="طباعة" Margin="2" Command="{Binding DataContext.PrintBomCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Background="LightGray"/>
+                                <Button Content="حذف" Margin="2" Command="{Binding DataContext.DeleteBomCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Background="LightCoral"/>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

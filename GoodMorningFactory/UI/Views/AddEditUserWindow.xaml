@@ -1,43 +1,95 @@
-﻿<!-- UI/Views/AddEditUserWindow.xaml -->
-<!-- نافذة إضافة وتعديل مستخدم -->
-<Window x:Class="GoodMorningFactory.UI.Views.AddEditUserWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditUserWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="إضافة / تعديل مستخدم" Height="300" Width="450"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" FlowDirection="RightToLeft">
-    <Grid Margin="15">
+        Title="{Binding WindowTitle}" Height="700" Width="500"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="RightToLeft"
+        FontFamily="Segoe UI"
+        Background="#F9F9F9">
+
+    <Grid Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="0" Grid.Column="0" Content="اسم المستخدم:" VerticalAlignment="Center" Margin="5"/>
-        <TextBox x:Name="UsernameTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <StackPanel HorizontalAlignment="Center" Margin="0,0,0,15">
+                    <Ellipse Width="100" Height="100">
+                        <Ellipse.Fill>
+                            <ImageBrush ImageSource="{Binding ProfileImage}" />
+                        </Ellipse.Fill>
+                    </Ellipse>
+                    <Button Content="رفع صورة" Margin="0,10,0,0" Padding="10,5" Command="{Binding UploadImageCommand}"/>
+                </StackPanel>
 
-        <Label Grid.Row="1" Grid.Column="0" Content="كلمة المرور:" VerticalAlignment="Center" Margin="5"/>
-        <PasswordBox x:Name="PasswordBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
-        <TextBlock Grid.Row="1" Grid.Column="1" Text="(اتركها فارغة لعدم التغيير)" Foreground="Gray" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10,0"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <Label Grid.Row="2" Grid.Column="0" Content="الدور:" VerticalAlignment="Center" Margin="5"/>
-        <ComboBox x:Name="RoleComboBox" Grid.Row="2" Grid.Column="1" Margin="5" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,0">
+                        <Label Content="اسم المستخدم:*"/>
+                        <TextBox Text="{Binding UserToSave.Username, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsUsernameEnabled}"/>
+                    </StackPanel>
 
-        <Label Grid.Row="3" Grid.Column="0" Content="الحالة:" VerticalAlignment="Center" Margin="5"/>
-        <CheckBox x:Name="IsActiveCheckBox" Grid.Row="3" Grid.Column="1" Margin="5" VerticalAlignment="Center" Content="نشط"/>
+                    <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,10,0">
+                        <Label Content="الاسم الأول:*"/>
+                        <TextBox Text="{Binding UserToSave.FirstName, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,0">
+                        <Label Content="الاسم الأخير:*"/>
+                        <TextBox Text="{Binding UserToSave.LastName, UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
 
-        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Left">
-            <Button x:Name="SaveButton" Content="💾 حفظ" Width="100" Margin="5" Padding="5" Click="SaveButton_Click"/>
-            <Button Content="إلغاء" Width="100" Margin="5" Padding="5" IsCancel="True"/>
+                    <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,10,0">
+                        <Label Content="البريد الإلكتروني:*"/>
+                        <TextBox Text="{Binding UserToSave.Email, UpdateSourceTrigger=PropertyChanged}" FlowDirection="LeftToRight"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,0">
+                        <Label Content="رقم الهاتف:"/>
+                        <TextBox Text="{Binding UserToSave.PhoneNumber, UpdateSourceTrigger=PropertyChanged}" FlowDirection="LeftToRight"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="3" Grid.Column="0" Margin="0,0,10,0">
+                        <Label Content="كلمة المرور:"/>
+                        <PasswordBox x:Name="PasswordBox"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="3" Grid.Column="1" Margin="10,0,0,0">
+                        <Label Content="تأكيد كلمة المرور:"/>
+                        <PasswordBox x:Name="ConfirmPasswordBox"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,10,0">
+                        <Label Content="الدور:*"/>
+                        <ComboBox ItemsSource="{Binding Roles}" SelectedValue="{Binding UserToSave.RoleId}" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="4" Grid.Column="1" Margin="10,0,0,0">
+                        <Label Content="القسم:"/>
+                        <ComboBox ItemsSource="{Binding Departments}" SelectedValue="{Binding UserToSave.DepartmentId}" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                    </StackPanel>
+
+                    <CheckBox IsChecked="{Binding UserToSave.IsActive}" Content="المستخدم نشط" Grid.Row="5" Grid.ColumnSpan="2" Margin="0,15,0,0"/>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,15,0,0">
+            <Button Content="حفظ" Style="{StaticResource PrimaryButtonStyle}" Click="SaveButton_Click"/>
+            <Button Content="إلغاء" Style="{StaticResource SecondaryButtonStyle}" IsCancel="True"/>
         </StackPanel>
     </Grid>
 </Window>

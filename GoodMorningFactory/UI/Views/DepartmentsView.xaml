@@ -1,0 +1,73 @@
+<!-- GoodMorningFactory/UI/Views/DepartmentsView.xaml -->
+<UserControl x:Class="GoodMorningFactory.UI.Views.DepartmentsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000"
+             Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+             FlowDirection="RightToLeft"
+             d:DataContext="{d:DesignInstance Type=vm:DepartmentsViewViewModel, IsDesignTimeCreatable=True}">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- شريط الأدوات: يحتوي على أزرار الإضافة والبحث والتحديث -->
+        <ToolBarTray Grid.Row="0">
+            <ToolBar>
+                <Button Content="➕ إضافة قسم جديد" Command="{Binding AddDepartmentCommand}"/>
+                <Separator/>
+                <TextBlock Text="بحث:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <TextBox Width="250" VerticalContentAlignment="Center" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=300}"/>
+                <Button Content="🔄 تحديث" Command="{Binding RefreshCommand}"/>
+            </ToolBar>
+        </ToolBarTray>
+
+        <!-- جدول عرض البيانات: مرتبط بمجموعة الأقسام في الـ ViewModel -->
+        <DataGrid ItemsSource="{Binding Departments}" SelectedItem="{Binding SelectedDepartment}"
+                  Grid.Row="1" Margin="0,10,0,0"
+                  IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="كود القسم" Binding="{Binding Id}" Width="Auto"/>
+                <DataGridTextColumn Header="اسم القسم" Binding="{Binding Name}" Width="2*"/>
+                <DataGridTextColumn Header="الوصف" Binding="{Binding Description}" Width="3*"/>
+                <DataGridTextColumn Header="تاريخ الإنشاء" Binding="{Binding CreatedAt, StringFormat=yyyy/MM/dd}" Width="*"/>
+
+                <!-- عمود الإجراءات: يحتوي على أزرار التعديل والحذف -->
+                <DataGridTemplateColumn Header="إجراءات" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="تعديل" Margin="2"
+                                        Command="{Binding DataContext.EditDepartmentCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"/>
+                                <Button Content="حذف" Margin="2"
+                                        Command="{Binding DataContext.DeleteDepartmentCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- قسم الترقيم: للتحكم في عرض الصفحات -->
+        <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="LightGray" Padding="5" Margin="0,5,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" HorizontalAlignment="Left" Content="&lt; السابق" Command="{Binding PreviousPageCommand}"/>
+                <TextBlock Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding PageInfo}"/>
+                <Button Grid.Column="2" HorizontalAlignment="Right" Content="التالي &gt;" Command="{Binding NextPageCommand}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

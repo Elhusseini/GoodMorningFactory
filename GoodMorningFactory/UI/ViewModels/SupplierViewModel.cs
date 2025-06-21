@@ -1,13 +1,14 @@
-﻿// UI/ViewModels/SupplierViewModel.cs
-// *** ملف جديد: ViewModel خاص بعرض بيانات الموردين مع أرصدتهم ***
-using GoodMorningFactory.Data.Models;
-
+﻿// GoodMorningFactory/UI/ViewModels/SupplierViewModel.cs
 namespace GoodMorningFactory.UI.ViewModels
 {
-    // هذا الكلاس يرث من كلاس المورد الأصلي ويضيف إليه خاصية الرصيد المحسوب
-    public class SupplierViewModel : Supplier
+    public class SupplierViewModel : BaseViewModel
     {
-        // خاصية إضافية لحساب وعرض الرصيد الحالي للمورد (المبالغ المستحقة له)
+        public int Id { get; set; }
+        public string SupplierCode { get; set; }
+        public string Name { get; set; }
+        public string ContactPerson { get; set; }
+        public string PhoneNumber { get; set; }
+        public bool IsActive { get; set; }
         public decimal CurrentBalance { get; set; }
     }
 }

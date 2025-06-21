@@ -1,5 +1,5 @@
 ﻿// UI/ViewModels/ProductionCostReportViewModel.cs
-// *** الكود الكامل لـ ViewModel الخاص ببيانات تقرير تكلفة الإنتاج ***
+// *** تحديث: تمت إضافة حقول تكلفة العمالة والتكلفة الإجمالية ***
 using System;
 
 namespace GoodMorningFactory.UI.ViewModels
@@ -11,5 +11,10 @@ namespace GoodMorningFactory.UI.ViewModels
         public int ProducedQuantity { get; set; }
         public DateTime CompletionDate { get; set; }
         public decimal TotalMaterialCost { get; set; }
+
+        // --- بداية التحديث ---
+        public decimal TotalLaborCost { get; set; } // تكلفة العمالة
+        public decimal TotalCost => TotalMaterialCost + TotalLaborCost; // التكلفة الإجمالية
+        // --- نهاية التحديث ---
     }
 }

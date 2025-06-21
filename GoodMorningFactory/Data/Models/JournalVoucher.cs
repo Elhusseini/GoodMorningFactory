@@ -1,15 +1,24 @@
-﻿// Data/Models/JournalVoucher.cs
-// *** الكود الكامل لنموذج القيد اليومي الرئيسي ***
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GoodMorningFactory.Data.Models
 {
-    // --- بداية التحديث ---
-    public enum VoucherStatus { Draft, Posted, Cancelled }
-    // --- نهاية التحديث ---
+    public enum VoucherStatus
+    {
+        [Description("مسودة")]
+        Draft,
+        [Description("مرحّل")]
+        Posted,
+        [Description("ملغي")]
+        Cancelled,
+        [Description("مقترح")]
+
+        Proposed    // مقترح <--- أضف هذه القيمة
+
+    }
 
     public class JournalVoucher
     {
@@ -28,8 +37,10 @@ namespace GoodMorningFactory.Data.Models
         [Required]
         public DateTime VoucherDate { get; set; }
 
+        // ---  بداية التعديل الرئيسي  ---
         [Required]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty; // تم تعيين قيمة افتراضية
+        // ---  نهاية التعديل الرئيسي  ---
 
         [Column(TypeName = "decimal(18, 2)")]
         public decimal TotalDebit { get; set; }
@@ -37,12 +48,10 @@ namespace GoodMorningFactory.Data.Models
         [Column(TypeName = "decimal(18, 2)")]
         public decimal TotalCredit { get; set; }
 
-        // --- بداية التحديث ---
         [Required]
-        public VoucherStatus Status { get; set; } = VoucherStatus.Posted; // افتراضياً، يتم الترحيل مباشرة
+        public VoucherStatus Status { get; set; } = VoucherStatus.Posted;
 
-        public bool IsReversed { get; set; } = false; // لتتبع ما إذا تم عكس القيد
-        // --- نهاية التحديث ---
+        public bool IsReversed { get; set; } = false;
 
         public virtual ICollection<JournalVoucherItem> JournalVoucherItems { get; set; }
     }

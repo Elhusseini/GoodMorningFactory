@@ -1,257 +1,306 @@
-﻿<!-- UI/Views/SettingsView.xaml -->
-<UserControl x:Class="GoodMorningFactory.UI.Views.SettingsView"
+﻿<UserControl x:Class="GoodMorningFactory.UI.Views.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="900"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GoodMorningFactory.UI.Views"
+             xmlns:viewmodels="clr-namespace:GoodMorningFactory.UI.ViewModels"
+             mc:Ignorable="d" 
+             
+             d:DataContext="{d:DesignInstance Type=viewmodels:SettingsViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="700" d:DesignWidth="950"
              Background="{DynamicResource PrimaryBackground}" FlowDirection="RightToLeft">
+
     <TabControl Margin="10" FontSize="14">
-        <!-- التبويب الأول: معلومات المصنع -->
-        <TabItem Header="معلومات المصنع">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="15">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+        <TabItem Header="معلومات الشركة">
+            <Grid Margin="15">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                        <Label Grid.Row="0" Grid.Column="0" Content="اسم المصنع:"/>
-                        <TextBox x:Name="CompanyNameTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
-
-                        <Label Grid.Row="1" Grid.Column="0" Content="العنوان:"/>
-                        <TextBox x:Name="AddressTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
-
-                        <Label Grid.Row="2" Grid.Column="0" Content="المدينة / الدولة:"/>
-                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
-                            <TextBox x:Name="CityTextBox" Width="150" Margin="5"/>
-                            <TextBox x:Name="CountryTextBox" Width="150" Margin="5"/>
-                        </StackPanel>
-
-                        <Label Grid.Row="3" Grid.Column="0" Content="الهاتف / البريد الإلكتروني:"/>
-                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
-                            <TextBox x:Name="PhoneNumberTextBox" Width="150" Margin="5"/>
-                            <TextBox x:Name="EmailTextBox" Width="150" Margin="5" FlowDirection="LeftToRight"/>
-                        </StackPanel>
-
-                        <Label Grid.Row="4" Grid.Column="0" Content="الرقم الضريبي / السجل التجاري:"/>
-                        <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal">
-                            <TextBox x:Name="TaxNumberTextBox" Width="150" Margin="5"/>
-                            <TextBox x:Name="CommercialRegTextBox" Width="150" Margin="5"/>
-                        </StackPanel>
-
-                        <Border Grid.Column="2" Grid.Row="0" Grid.RowSpan="6" BorderBrush="Gray" BorderThickness="1" Margin="20,5,5,5" Padding="5">
-                            <Image x:Name="LogoImage" Stretch="Uniform" Width="150" Height="150"/>
-                        </Border>
-                        <Button x:Name="UploadLogoButton" Content="تحميل الشعار..." Grid.Column="2" Grid.Row="6" VerticalAlignment="Top" Margin="20,5,5,5" Click="UploadLogoButton_Click"/>
-
-                        <Button x:Name="SaveCompanyInfoButton" Content="💾 حفظ معلومات المصنع" Grid.Row="6" Grid.Column="1" HorizontalAlignment="Left" Padding="15,5" Margin="5" Click="SaveCompanyInfoButton_Click"/>
-                    </Grid>
-
-                    <!-- قسم المظهر -->
-                    <GroupBox Header="المظهر (Theme)" Margin="5">
-                        <StackPanel Orientation="Horizontal" Margin="10">
-                            <RadioButton x:Name="LightThemeRadioButton" Content="فاتح (Light)" GroupName="Theme" IsChecked="True" Checked="ThemeRadioButton_Checked"/>
-                            <RadioButton x:Name="DarkThemeRadioButton" Content="داكن (Dark)" GroupName="Theme" Margin="20,0,0,0" Checked="ThemeRadioButton_Checked"/>
-                        </StackPanel>
-                    </GroupBox>
+                <Label Grid.Row="0" Grid.Column="0" Content="اسم الشركة:"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding CompanySettings.CompanyName, UpdateSourceTrigger=PropertyChanged}"/>
+                <Label Grid.Row="1" Grid.Column="0" Content="العنوان:"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding CompanySettings.Address, UpdateSourceTrigger=PropertyChanged}"/>
+                <Label Grid.Row="2" Grid.Column="0" Content="المدينة / الدولة:"/>
+                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                    <TextBox Width="150" Margin="5" Text="{Binding CompanySettings.City, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox Width="150" Margin="5" Text="{Binding CompanySettings.Country, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
-            </ScrollViewer>
+                <Label Grid.Row="3" Grid.Column="0" Content="الهاتف / البريد الإلكتروني:"/>
+                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+                    <TextBox Width="150" Margin="5" Text="{Binding CompanySettings.PhoneNumber, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox Width="150" Margin="5" FlowDirection="LeftToRight" Text="{Binding CompanySettings.Email, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+                <Label Grid.Row="4" Grid.Column="0" Content="الموقع الإلكتروني:"/>
+                <TextBox Grid.Row="4" Grid.Column="1" Margin="5" FlowDirection="LeftToRight" Text="{Binding CompanySettings.Website, UpdateSourceTrigger=PropertyChanged}"/>
+                <Label Grid.Row="5" Grid.Column="0" Content="الرقم الضريبي / السجل التجاري:"/>
+                <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal">
+                    <TextBox Width="150" Margin="5" Text="{Binding CompanySettings.TaxNumber, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBox Width="150" Margin="5" Text="{Binding CompanySettings.CommercialRegistrationNumber, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+                <Border Grid.Column="2" Grid.Row="0" Grid.RowSpan="6" BorderBrush="Gray" BorderThickness="1" Margin="20,5,5,5" Padding="5">
+                    <Image Source="{Binding LogoImage}" Stretch="Uniform" Width="150" Height="150"/>
+                </Border>
+                <Button Content="تحميل الشعار..." Grid.Column="2" Grid.Row="6" VerticalAlignment="Top" Margin="20,5,5,5" Command="{Binding UploadLogoCommand}"/>
+                <Button Content="💾 حفظ معلومات المصنع" Grid.Row="7" Grid.Column="1" HorizontalAlignment="Left" Padding="15,5" Margin="5" Command="{Binding SaveCompanyInfoCommand}"/>
+            </Grid>
         </TabItem>
 
-        <!-- التبويب الثاني: الإعدادات العامة -->
         <TabItem Header="الإعدادات العامة">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="15">
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,15" Foreground="{DynamicResource PrimaryText}">
-						هنا يمكنك ضبط الإعدادات العامة التي تؤثر على سلوك النظام ككل.
-                    </TextBlock>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Label Grid.Row="0" Grid.Column="0" Content="لغة النظام الافتراضية:" VerticalAlignment="Center"/>
-                        <ComboBox x:Name="LanguageComboBox" Grid.Row="0" Grid.Column="1" Margin="5" Width="200" HorizontalAlignment="Left"/>
-
-                        <Label Grid.Row="1" Grid.Column="0" Content="تنسيق التاريخ الافتراضي:" VerticalAlignment="Center"/>
-                        <ComboBox x:Name="DateFormatComboBox" Grid.Row="1" Grid.Column="1" Margin="5" Width="200" HorizontalAlignment="Left"/>
-
-                        <Label Grid.Row="2" Grid.Column="0" Content="العملة الأساسية للنظام:" VerticalAlignment="Center"/>
-                        <ComboBox x:Name="CurrencyComboBox" Grid.Row="2" Grid.Column="1" Margin="5" Width="200" HorizontalAlignment="Left"/>
-                    </Grid>
-                    <Button x:Name="SaveGeneralSettingsButton" Content="💾 حفظ الإعدادات العامة" HorizontalAlignment="Left" Padding="15,5" Margin="0,20,0,0" Click="SaveGeneralSettingsButton_Click"/>
-                </StackPanel>
-            </ScrollViewer>
-        </TabItem>
-
-        <!-- التبويب الثالث: إعدادات المستخدمين -->
-        <TabItem Header="إعدادات المستخدمين">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="15">
-                    <TextBlock Text="سياسة كلمة المرور" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="100"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="100"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
-
-                        <Label Grid.Row="0" Grid.Column="0" Content="الحد الأدنى لطول كلمة المرور:"/>
-                        <TextBox x:Name="MinPassLengthTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
-                        <Label Grid.Row="0" Grid.Column="2" Content="صلاحية كلمة المرور (يوم):"/>
-                        <TextBox x:Name="PassExpiryTextBox" Grid.Row="0" Grid.Column="3" Margin="5"/>
-
-                        <Label Grid.Row="1" Grid.Column="0" Content="محاولات الدخول الفاشلة قبل القفل:"/>
-                        <TextBox x:Name="LockoutAttemptsTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
-
-                        <StackPanel Grid.Row="2" Grid.ColumnSpan="4" Orientation="Horizontal" Margin="0,10,0,0">
-                            <CheckBox x:Name="RequireUppercaseCheckBox" Content="اشتراط أحرف كبيرة" Margin="5"/>
-                            <CheckBox x:Name="RequireLowercaseCheckBox" Content="اشتراط أحرف صغيرة" Margin="5"/>
-                            <CheckBox x:Name="RequireDigitCheckBox" Content="اشتراط أرقام" Margin="5"/>
-                            <CheckBox x:Name="RequireSpecialCharCheckBox" Content="اشتراط رموز خاصة" Margin="5"/>
-                        </StackPanel>
-                    </Grid>
-
-                    <Separator Margin="0,20"/>
-                    <TextBlock Text="إعدادات أخرى" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="250"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Content="الدور الافتراضي للمستخدمين الجدد:"/>
-                        <ComboBox x:Name="DefaultRoleComboBox" Grid.Column="1" Margin="5" DisplayMemberPath="Name" SelectedValuePath="Id"/>
-                    </Grid>
-
-                    <Button x:Name="SaveUserSettingsButton" Content="💾 حفظ إعدادات المستخدمين" HorizontalAlignment="Left" Padding="15,5" Margin="0,20,0,0" Click="SaveUserSettingsButton_Click"/>
-                </StackPanel>
-            </ScrollViewer>
-        </TabItem>
-
-        <!-- التبويب الرابع: الترقيم التلقائي -->
-        <TabItem Header="الترقيم التلقائي">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="15">
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,15" Foreground="{DynamicResource PrimaryText}">
-						هنا يمكنك إدارة تسلسل الأرقام التلقائية للمستندات المختلفة في النظام.
-                    </TextBlock>
-                    <DataGrid x:Name="NumberingDataGrid" AutoGenerateColumns="False" CanUserAddRows="False">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="نوع المستند" Binding="{Binding DocumentType}" IsReadOnly="True" Width="2*"/>
-                            <DataGridTextColumn Header="البادئة" Binding="{Binding Prefix}" Width="*"/>
-                            <DataGridTextColumn Header="آخر رقم مستخدم" Binding="{Binding LastNumber}" Width="*"/>
-                            <DataGridTextColumn Header="عدد الخانات" Binding="{Binding NumberOfDigits}" Width="*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    <Button x:Name="SaveNumberingButton" Content="💾 حفظ إعدادات الترقيم" HorizontalAlignment="Left" Padding="15,5" Margin="0,20,0,0" Click="SaveNumberingButton_Click"/>
-                </StackPanel>
-            </ScrollViewer>
-        </TabItem>
-
-        <!-- التبويب الخامس: الحسابات الافتراضية -->
-        <TabItem Header="الحسابات الافتراضية" FontSize="14">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="15">
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,15">
-						هنا يمكنك تحديد الحسابات الافتراضية التي سيستخدمها النظام لإنشاء القيود المحاسبية تلقائياً عند حدوث عمليات البيع والشراء.
-                    </TextBlock>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-
-                        <Label Grid.Row="0" Grid.Column="0" Content="حساب المبيعات الافتراضي:" VerticalAlignment="Center"/>
-                        <ComboBox x:Name="SalesAccountComboBox" Grid.Row="0" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id"/>
-
-                        <Label Grid.Row="1" Grid.Column="0" Content="حساب العملاء (الذمم المدينة) الافتراضي:" VerticalAlignment="Center"/>
-                        <ComboBox x:Name="AccountsReceivableComboBox" Grid.Row="1" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id"/>
-
-                        <Label Grid.Row="2" Grid.Column="0" Content="حساب المشتريات الافتراضي:" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
-                        <ComboBox x:Name="PurchasesAccountComboBox" Grid.Row="2" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id"/>
-
-                        <Label Grid.Row="3" Grid.Column="0" Content="حساب الموردين (الذمم الدائنة) الافتراضي:" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
-                        <ComboBox x:Name="AccountsPayableComboBox" Grid.Row="3" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id"/>
-                    </Grid>
-                    <Button x:Name="SaveDefaultAccountsButton" Content="💾 حفظ الحسابات" HorizontalAlignment="Left" Padding="15,5" Margin="0,20,0,0" Click="SaveDefaultAccountsButton_Click"/>
-                </StackPanel>
-            </ScrollViewer>
-        </TabItem>
-
-        <!-- التبويب السادس: إعدادات الإشعارات -->
-        <TabItem Header="إعدادات الإشعارات">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="15">
-                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,15" Foreground="{DynamicResource PrimaryText}">
-						هنا يمكنك التحكم في الإشعارات التي يتم إرسالها عند وقوع أحداث معينة في النظام.
-                    </TextBlock>
-                    <DataGrid x:Name="NotificationsDataGrid" AutoGenerateColumns="False" CanUserAddRows="False">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="الحدث" Binding="{Binding Description}" IsReadOnly="True" Width="3*"/>
-                            <DataGridCheckBoxColumn Header="تفعيل الإشعار" Binding="{Binding IsEnabled}" Width="*"/>
-                            <DataGridCheckBoxColumn Header="إشعار داخل التطبيق" Binding="{Binding SendInApp}" Width="*"/>
-                            <DataGridCheckBoxColumn Header="إرسال بريد إلكتروني" Binding="{Binding SendEmail}" Width="*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    <Button x:Name="SaveNotificationsButton" Content="💾 حفظ إعدادات الإشعارات" HorizontalAlignment="Left" Padding="15,5" Margin="0,20,0,0" Click="SaveNotificationsButton_Click"/>
-                </StackPanel>
-            </ScrollViewer>
-        </TabItem>
-
-        <!-- التبويب السابع: النسخ الاحتياطي والاستعادة -->
-        <TabItem Header="النسخ الاحتياطي والاستعادة">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <Grid Margin="15">
+            <StackPanel Margin="15">
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,15" Foreground="{DynamicResource PrimaryText}">هنا يمكنك ضبط الإعدادات العامة التي تؤثر على سلوك النظام ككل.</TextBlock>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" Content="لغة النظام الافتراضية:" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="5" Width="200" HorizontalAlignment="Left" 
+                              ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding CompanySettings.DefaultLanguage}"/>
+                    <Label Grid.Row="1" Grid.Column="0" Content="تنسيق التاريخ الافتراضي:" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" Width="200" HorizontalAlignment="Left" 
+                              ItemsSource="{Binding DateFormatOptions}" SelectedItem="{Binding CompanySettings.DefaultDateFormat}"/>
+                    <Label Grid.Row="2" Grid.Column="0" Content="العملة الأساسية للنظام:" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="2" Grid.Column="1" Margin="5" Width="200" HorizontalAlignment="Left" 
+                              ItemsSource="{Binding Currencies}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                              SelectedValue="{Binding CompanySettings.DefaultCurrencyId}"/>
+                </Grid>
+                <TextBlock Text="مظهر البرنامج (Theme)" FontSize="16" FontWeight="Bold" Margin="0,20,0,10"/>
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton Content="فاتح (Light)" GroupName="Theme" IsChecked="{Binding IsLightThemeChecked}"/>
+                    <RadioButton Content="داكن (Dark)" GroupName="Theme" Margin="20,0,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,15,0,0">
+                    <Button Content="إدارة العملات" Margin="0,0,10,0" Command="{Binding ManageCurrenciesCommand}"/>
+                    <Button Content="حفظ الإعدادات العامة" Command="{Binding SaveGeneralSettingsCommand}"/>
+                </StackPanel>
+            </StackPanel>
+        </TabItem>
 
-                    <Button Content="💾 إنشاء نسخة احتياطية الآن" HorizontalAlignment="Left" Padding="15,5" Margin="5" Click="BackupButton_Click"/>
+        <TabItem Header="إعدادات المستخدمين">
+            <StackPanel Margin="15">
+                <TextBlock Text="سياسة كلمة المرور" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="100"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" Content="الحد الأدنى لطول كلمة المرور:"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding CompanySettings.MinPasswordLength}"/>
+                    <Label Grid.Row="0" Grid.Column="2" Content="صلاحية كلمة المرور (يوم):"/>
+                    <TextBox Grid.Row="0" Grid.Column="3" Margin="5" Text="{Binding CompanySettings.PasswordExpiryDays}"/>
+                    <Label Grid.Row="1" Grid.Column="0" Content="محاولات الدخول الفاشلة قبل القفل:"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding CompanySettings.FailedLoginLockoutAttempts}"/>
+                    <StackPanel Grid.Row="2" Grid.ColumnSpan="4" Orientation="Horizontal" Margin="0,10,0,0">
+                        <CheckBox Content="اشتراط أحرف كبيرة" Margin="5" IsChecked="{Binding CompanySettings.RequireUppercase}"/>
+                        <CheckBox Content="اشتراط أحرف صغيرة" Margin="5" IsChecked="{Binding CompanySettings.RequireLowercase}"/>
+                        <CheckBox Content="اشتراط أرقام" Margin="5" IsChecked="{Binding CompanySettings.RequireDigit}"/>
+                        <CheckBox Content="اشتراط رموز خاصة" Margin="5" IsChecked="{Binding CompanySettings.RequireSpecialChar}"/>
+                    </StackPanel>
+                </Grid>
+                <Separator Margin="0,20"/>
+                <TextBlock Text="إعدادات أخرى" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="250"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="الدور الافتراضي للمستخدمين الجدد:"/>
+                    <ComboBox Grid.Column="1" Margin="5" 
+                              ItemsSource="{Binding Roles}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                              SelectedValue="{Binding CompanySettings.DefaultRoleId}"/>
+                </Grid>
+                <Button Content="💾 حفظ إعدادات المستخدمين" HorizontalAlignment="Left" Padding="15,5" Margin="0,20,0,0"
+                        Command="{Binding SaveUserSettingsCommand}"/>
+            </StackPanel>
+        </TabItem>
 
-                    <GroupBox Header="النسخ الاحتياطية المتاحة" Grid.Row="1" Margin="0,10,0,0">
-                        <ListView x:Name="BackupsListView">
+        <TabItem Header="الحسابات الافتراضية">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="15">
+                    <TextBlock TextWrapping="Wrap" Margin="0,0,0,15" Foreground="{DynamicResource PrimaryText}">هنا يمكنك تحديد الحسابات الافتراضية التي سيستخدمها النظام لإنشاء القيود المحاسبية تلقائياً.</TextBlock>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="250"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Content="حساب المبيعات الافتراضي:" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="0" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding Accounts}" SelectedValue="{Binding CompanySettings.DefaultSalesAccountId}"/>
+                        <Label Grid.Row="1" Content="حساب مردودات المبيعات:" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding Accounts}" SelectedValue="{Binding CompanySettings.DefaultSalesReturnsAccountId}"/>
+                        <Label Grid.Row="2" Content="حساب العملاء (الذمم المدينة):" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="2" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding Accounts}" SelectedValue="{Binding CompanySettings.DefaultAccountsReceivableAccountId}"/>
+                        <Label Grid.Row="3" Content="حساب المخزون:" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding AssetAccounts}" SelectedValue="{Binding CompanySettings.DefaultInventoryAccountId}"/>
+                        <Label Grid.Row="4" Content="حساب تكلفة البضاعة المباعة (COGS):" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="4" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding ExpenseAccounts}" SelectedValue="{Binding CompanySettings.DefaultCogsAccountId}"/>
+                        
+                        <Label Grid.Row="5" Content="حساب الإنتاج تحت التشغيل (WIP):" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}" FontWeight="Bold"/>
+                        <ComboBox Grid.Row="5" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding AssetAccounts}" SelectedValue="{Binding CompanySettings.DefaultWipAccountId}"/>
+                        <Label Grid.Row="6" Content="حساب المشتريات:" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="6" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding Accounts}" SelectedValue="{Binding CompanySettings.DefaultPurchasesAccountId}"/>
+                        <Label Grid.Row="7" Content="حساب الموردين (الذمم الدائنة):" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="7" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding Accounts}" SelectedValue="{Binding CompanySettings.DefaultAccountsPayableAccountId}"/>
+                        <Label Grid.Row="8" Content="حساب بضاعة مستلمة غير مفوترة:" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}" FontWeight="Bold"/>
+                        <ComboBox Grid.Row="8" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding LiabilityAccounts}" SelectedValue="{Binding CompanySettings.DefaultGoodReceiptsAccrualAccountId}"/>
+                        <Label Grid.Row="9" Content="حساب النقدية/البنك (للمقبوضات/المدفوعات):" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="9" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding AssetAccounts}" SelectedValue="{Binding CompanySettings.DefaultCashAccountId}"/>
+                        <Label Grid.Row="10" Content="حساب مردودات المشتريات:" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="10" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding Accounts}" SelectedValue="{Binding CompanySettings.DefaultPurchaseReturnsAccountId}"/>
+                        <Label Grid.Row="11" Content="حساب مصروف الرواتب:" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="11" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding ExpenseAccounts}" SelectedValue="{Binding CompanySettings.DefaultPayrollExpenseAccountId}"/>
+                        <Label Grid.Row="12" Content="حساب الرواتب المستحقة:" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="12" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding LiabilityAccounts}" SelectedValue="{Binding CompanySettings.DefaultPayrollAccrualAccountId}"/>
+                        <Label Grid.Row="13" Content="حساب ضريبة القيمة المضافة (VAT):" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="13" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding LiabilityAccounts}" SelectedValue="{Binding CompanySettings.DefaultVatAccountId}"/>
+                        <Label Grid.Row="14" Content="حساب تسوية المخزون (فروقات الجرد):" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryText}"/>
+                        <ComboBox Grid.Row="14" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id" ItemsSource="{Binding ExpenseAccounts}" SelectedValue="{Binding CompanySettings.DefaultInventoryAdjustmentAccountId}"/>
+                    </Grid>
+                    <Button Content="💾 حفظ الحسابات" HorizontalAlignment="Left" Padding="15,5" Margin="0,20,0,0" Command="{Binding SaveDefaultAccountsCommand}"/>
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="إعدادات المخزون">
+            <StackPanel Margin="15">
+                <TextBlock Text="إعدادات تقييم المخزون" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" Content="طريقة تقييم المخزون الافتراضية:" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="0" Grid.Column="1" Margin="5" Width="250" HorizontalAlignment="Left" 
+                              DisplayMemberPath="Description" SelectedValuePath="Value"
+                              ItemsSource="{Binding CostingMethodOptions}"
+                              SelectedValue="{Binding CompanySettings.DefaultCostingMethod}"/>
+                </Grid>
+                <TextBlock TextWrapping="Wrap" Margin="0,5,0,15" FontStyle="Italic" Foreground="Gray">
+                    تنبيه: هذا الإعداد يحدد كيفية حساب تكلفة البضاعة المباعة وقيمة المخزون. تغييره بعد بدء إدخال الحركات قد يتطلب إعادة تقييم للمخزون.
+                </TextBlock>
+                <Button Content="💾 حفظ إعدادات المخزون" HorizontalAlignment="Left" Padding="15,5" Margin="0,20,0,0"
+                        Command="{Binding SaveInventorySettingsCommand}"/>
+            </StackPanel>
+        </TabItem>
+
+        <TabItem Header="الترقيم التلقائي">
+            <StackPanel Margin="15">
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,15" Foreground="{DynamicResource PrimaryText}">هنا يمكنك إدارة تسلسل الأرقام التلقائية للمستندات المختلفة في النظام.</TextBlock>
+                <DataGrid ItemsSource="{Binding NumberingSequences}" AutoGenerateColumns="False" CanUserAddRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="نوع المستند" Binding="{Binding DocumentType}" IsReadOnly="True" Width="2*"/>
+                        <DataGridTextColumn Header="البادئة" Binding="{Binding Prefix}" Width="*"/>
+                        <DataGridTextColumn Header="آخر رقم مستخدم" Binding="{Binding LastNumber}" Width="*"/>
+                        <DataGridTextColumn Header="عدد الخانات" Binding="{Binding NumberOfDigits}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <Button Content="💾 حفظ إعدادات الترقيم" HorizontalAlignment="Left" Padding="15,5" Margin="0,20,0,0"
+                        Command="{Binding SaveNumberingCommand}"/>
+            </StackPanel>
+        </TabItem>
+
+        <TabItem Header="إعدادات الإشعارات">
+            <StackPanel Margin="15">
+                <TextBlock TextWrapping="Wrap" Margin="0,0,0,15" Foreground="{DynamicResource PrimaryText}">هنا يمكنك التحكم في الإشعارات التي يتم إرسالها عند وقوع أحداث معينة في النظام.</TextBlock>
+                <DataGrid ItemsSource="{Binding NotificationSettings}" AutoGenerateColumns="False" CanUserAddRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="الحدث" Binding="{Binding Description}" IsReadOnly="True" Width="3*"/>
+                        <DataGridCheckBoxColumn Header="تفعيل الإشعار" Binding="{Binding IsEnabled}" Width="*"/>
+                        <DataGridCheckBoxColumn Header="إشعار داخل التطبيق" Binding="{Binding SendInApp}" Width="*"/>
+                        <DataGridCheckBoxColumn Header="إرسال بريد إلكتروني" Binding="{Binding SendEmail}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <Button Content="💾 حفظ إعدادات الإشعارات" HorizontalAlignment="Left" Padding="15,5" Margin="0,20,0,0"
+                        Command="{Binding SaveNotificationsCommand}"/>
+            </StackPanel>
+        </TabItem>
+
+        <TabItem Header="النسخ الاحتياطي والاستعادة">
+            <Grid Margin="15">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <GroupBox Header="النسخ الاحتياطي التلقائي عند إغلاق البرنامج" FontWeight="Bold" Margin="0,0,0,15">
+                    <StackPanel Margin="10">
+                        <CheckBox Content="تفعيل النسخ الاحتياطي التلقائي عند إغلاق البرنامج"
+                                  IsChecked="{Binding CompanySettings.IsAutoBackupEnabled}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Label Content="الاحتفاظ بآخر:"/>
+                            <TextBox Width="50" Text="{Binding CompanySettings.BackupsToKeep}"/>
+                            <Label Content="نسخ احتياطية."/>
+                        </StackPanel>
+                        <Button Content="💾 حفظ إعدادات النسخ الاحتياطي" HorizontalAlignment="Left" Padding="10,5" Margin="0,15,0,0"
+                                Command="{Binding SaveBackupSettingsCommand}"/>
+                    </StackPanel>
+                </GroupBox>
+                <GroupBox Header="العمليات اليدوية" Grid.Row="1" Margin="0,10,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button Content="💾 إنشاء نسخة احتياطية يدوية الآن" HorizontalAlignment="Left" Padding="15,5" Margin="5"
+                                Command="{Binding CreateBackupCommand}"/>
+                        <ListView Grid.Row="1" Margin="0,10,0,0" ItemsSource="{Binding BackupFiles}">
                             <ListView.View>
                                 <GridView>
-                                    <GridViewColumn Header="اسم الملف" DisplayMemberBinding="{Binding FileName}" Width="300"/>
+                                    <GridViewColumn Header="اسم الملف" DisplayMemberBinding="{Binding FileName}" Width="350"/>
                                     <GridViewColumn Header="تاريخ الإنشاء" DisplayMemberBinding="{Binding CreationDate, StringFormat='g'}" Width="150"/>
                                     <GridViewColumn Header="الحجم" DisplayMemberBinding="{Binding FileSize}" Width="100"/>
                                     <GridViewColumn Header="إجراءات" Width="150">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <Button Content="استعادة" Click="RestoreButton_Click" Margin="2"/>
-                                                    <Button Content="حذف" Click="DeleteBackupButton_Click" Background="LightCoral" Margin="2"/>
+                                                    <Button Content="استعادة" Margin="2"
+                                                            Command="{Binding DataContext.RestoreBackupCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                            CommandParameter="{Binding}"/>
+                                                    <Button Content="حذف" Background="LightCoral" Margin="2"
+                                                            Command="{Binding DataContext.DeleteBackupCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                            CommandParameter="{Binding}"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
@@ -259,9 +308,9 @@
                                 </GridView>
                             </ListView.View>
                         </ListView>
-                    </GroupBox>
-                </Grid>
-            </ScrollViewer>
+                    </Grid>
+                </GroupBox>
+            </Grid>
         </TabItem>
     </TabControl>
 </UserControl>

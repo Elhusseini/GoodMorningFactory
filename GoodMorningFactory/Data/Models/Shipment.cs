@@ -1,12 +1,21 @@
-﻿// Data/Models/Shipment.cs
-// *** ملف جديد: يمثل جدول الشحنات الرئيسي ***
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel; // <-- تأكد من وجود هذا السطر
 using System.ComponentModel.DataAnnotations;
 
 namespace GoodMorningFactory.Data.Models
 {
-    public enum ShipmentStatus { Preparing, Shipped, Delivered }
+    public enum ShipmentStatus
+    {
+        [Description("قيد التجهيز")]
+        Preparing,
+
+        [Description("تم الشحن")]
+        Shipped,
+
+        [Description("تم التسليم")]
+        Delivered
+    }
 
     public class Shipment
     {

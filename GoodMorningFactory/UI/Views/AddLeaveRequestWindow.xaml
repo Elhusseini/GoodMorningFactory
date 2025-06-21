@@ -1,11 +1,10 @@
-﻿<!-- UI/Views/AddLeaveRequestWindow.xaml -->
-<!-- *** ملف جديد: نافذة تقديم طلب إجازة جديد *** -->
-<Window x:Class="GoodMorningFactory.UI.Views.AddLeaveRequestWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddLeaveRequestWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        mc:Ignorable="d" Title="تقديم طلب إجازة" Height="400" Width="500"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d" 
+        Title="تقديم طلب إجازة" Height="400" Width="500"
         WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
     <Grid Margin="15">
         <Grid.ColumnDefinitions>
@@ -13,25 +12,33 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Content="الموظف:"/>
-        <ComboBox x:Name="EmployeeComboBox" Grid.Row="0" Grid.Column="1" Margin="5" DisplayMemberPath="FirstName"/>
+        <ComboBox Grid.Row="0" Grid.Column="1" Margin="5" ItemsSource="{Binding Employees}" 
+                  DisplayMemberPath="FirstName" SelectedValuePath="Id" 
+                  SelectedValue="{Binding LeaveRequest.EmployeeId}"/>
 
         <Label Grid.Row="1" Grid.Column="0" Content="نوع الإجازة:"/>
-        <ComboBox x:Name="LeaveTypeComboBox" Grid.Row="1" Grid.Column="1" Margin="5" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+        <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" ItemsSource="{Binding LeaveTypes}" 
+                  DisplayMemberPath="Name" SelectedValuePath="Id"
+                  SelectedValue="{Binding LeaveRequest.LeaveTypeId}"/>
 
         <Label Grid.Row="2" Grid.Column="0" Content="تاريخ البدء:"/>
-        <DatePicker x:Name="StartDatePicker" Grid.Row="2" Grid.Column="1" Margin="5"/>
+        <DatePicker Grid.Row="2" Grid.Column="1" Margin="5" SelectedDate="{Binding LeaveRequest.StartDate}"/>
 
         <Label Grid.Row="3" Grid.Column="0" Content="تاريخ الانتهاء:"/>
-        <DatePicker x:Name="EndDatePicker" Grid.Row="3" Grid.Column="1" Margin="5"/>
+        <DatePicker Grid.Row="3" Grid.Column="1" Margin="5" SelectedDate="{Binding LeaveRequest.EndDate}"/>
 
-        <Button Grid.Row="4" Grid.Column="1" Content="💾 تقديم الطلب" HorizontalAlignment="Left" Padding="15,5" Margin="5" Click="SubmitButton_Click"/>
+        <Label Grid.Row="4" Grid.Column="0" Content="السبب (اختياري):"/>
+        <TextBox Grid.Row="4" Grid.Column="1" Margin="5" Text="{Binding LeaveRequest.Reason, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+
+        <Button Grid.Row="5" Grid.Column="1" Content="💾 تقديم الطلب" HorizontalAlignment="Left" Padding="15,5" Margin="5" Click="SubmitButton_Click"/>
     </Grid>
 </Window>

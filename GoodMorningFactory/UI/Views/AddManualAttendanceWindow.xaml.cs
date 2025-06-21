@@ -1,10 +1,5 @@
 ﻿// UI/Views/AddManualAttendanceWindow.xaml.cs
-// *** ملف جديد: الكود الخلفي لنافذة التسجيل اليدوي ***
-using GoodMorningFactory.Data;
-using GoodMorningFactory.Data.Models;
-using System;
-using System.Globalization;
-using System.Linq;
+// *** الكود الخلفي المعدل ***
 using System.Windows;
 
 namespace GoodMorningFactory.UI.Views
@@ -14,59 +9,17 @@ namespace GoodMorningFactory.UI.Views
         public AddManualAttendanceWindow()
         {
             InitializeComponent();
-            LoadEmployees();
-            AttendanceDatePicker.SelectedDate = DateTime.Today;
         }
 
-        private void LoadEmployees()
+        // هذه الدالة تغلق النافذة بعد تنفيذ الأمر بنجاح من الـ ViewModel
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            using (var db = new DatabaseContext())
-            {
-                EmployeeComboBox.ItemsSource = db.Employees.ToList();
-            }
-        }
-
-        private void SignIn_Click(object sender, RoutedEventArgs e)
-        {
-            SaveRecord(RecordType.In);
-        }
-
-        private void SignOut_Click(object sender, RoutedEventArgs e)
-        {
-            SaveRecord(RecordType.Out);
-        }
-
-        private void SaveRecord(RecordType type)
-        {
-            if (EmployeeComboBox.SelectedItem == null || AttendanceDatePicker.SelectedDate == null || !TimeSpan.TryParse(TimeTextBox.Text, out TimeSpan time))
-            {
-                MessageBox.Show("يرجى التأكد من اختيار الموظف وإدخال التاريخ والوقت بشكل صحيح (HH:mm).");
-                return;
-            }
-
-            var selectedEmployee = (Employee)EmployeeComboBox.SelectedItem;
-            var selectedDate = AttendanceDatePicker.SelectedDate.Value;
-            var finalTimestamp = selectedDate.Date + time;
-
-            try
-            {
-                using (var db = new DatabaseContext())
-                {
-                    db.AttendanceRecords.Add(new AttendanceRecord
-                    {
-                        EmployeeId = selectedEmployee.Id,
-                        Timestamp = finalTimestamp,
-                        RecordType = type
-                    });
-                    db.SaveChanges();
-                }
-                MessageBox.Show("تم تسجيل الحركة بنجاح.");
-                this.DialogResult = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل تسجيل الحركة: {ex.Message}");
-            }
+            // تم تعديل هذا الجزء. لا نغلق النافذة تلقائياً
+            // الـ ViewModel هو المسؤول عن إظهار رسالة النجاح
+            // يمكن للمستخدم إغلاق النافذة يدوياً بعد رؤية الرسالة
+            // أو يمكننا تعديل ال ViewModel ليغلق النافذة برمجياً (خطوة متقدمة)
+            // حالياً، سنبقيها هكذا لتبسيط الأمور.
+            this.DialogResult = true; // نرجع بنتيجة إيجابية لإعادة تحميل البيانات في الشاشة الرئيسية
         }
     }
 }

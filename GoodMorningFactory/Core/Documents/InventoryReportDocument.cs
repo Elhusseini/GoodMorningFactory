@@ -1,5 +1,5 @@
 ﻿// Core/Documents/InventoryReportDocument.cs
-// *** ملف جديد: كلاس مسؤول عن تصميم وتوليد تقرير المخزون كملف PDF ***
+// *** تحديث: تم إصلاح اسم الخاصية ليتوافق مع الـ ViewModel المحدث ***
 using GoodMorningFactory.Data.Models;
 using GoodMorningFactory.UI.ViewModels;
 using QuestPDF.Fluent;
@@ -91,7 +91,9 @@ namespace GoodMorningFactory.Core.Documents
                     table.Cell().Text(item.ProductCode);
                     table.Cell().Text(item.ProductName);
                     table.Cell().Text(item.CategoryName);
-                    table.Cell().Text(item.Quantity.ToString()).SemiBold();
+                    // --- بداية الإصلاح ---
+                    table.Cell().Text(item.QuantityOnHand.ToString()).SemiBold();
+                    // --- نهاية الإصلاح ---
                 }
             });
         }

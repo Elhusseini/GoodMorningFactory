@@ -1,0 +1,73 @@
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditFixedAssetWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="{Binding WindowTitle}" Height="550" Width="450"
+        FlowDirection="RightToLeft" WindowStartupLocation="CenterScreen">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Label Content="اسم الأصل:"/>
+                <TextBox Text="{Binding Asset.AssetName, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <Label Content="كود الأصل:"/>
+                <TextBox Text="{Binding Asset.AssetCode, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <Label Content="الوصف:"/>
+                <TextBox Text="{Binding Asset.Description, UpdateSourceTrigger=PropertyChanged}" Height="60" TextWrapping="Wrap"/>
+
+                <Label Content="تاريخ الشراء:"/>
+                <DatePicker SelectedDate="{Binding Asset.AcquisitionDate, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <Label Content="تكلفة الشراء:"/>
+                <TextBox Text="{Binding Asset.AcquisitionCost, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <Label Content="القيمة التخريدية:"/>
+                <TextBox Text="{Binding Asset.SalvageValue, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <Label Content="العمر الإنتاجي (بالسنوات):"/>
+                <TextBox Text="{Binding Asset.UsefulLifeYears, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <Label Content="طريقة الإهلاك:"/>
+                <ComboBox ItemsSource="{Binding DepreciationMethods}" 
+                          SelectedValue="{Binding Asset.DepreciationMethod}"
+                          DisplayMemberPath="Description" 
+                          SelectedValuePath="Method"/>
+
+                <Separator Margin="0,10"/>
+
+                <Label Content="الربط المحاسبي" FontWeight="Bold"/>
+
+                <Label Content="حساب الأصل:"/>
+                <ComboBox ItemsSource="{Binding AssetAccounts}" 
+                          SelectedItem="{Binding Asset.AssetAccount}"
+                          SelectedValue="{Binding Asset.AssetAccountId, UpdateSourceTrigger=PropertyChanged}"
+                          DisplayMemberPath="DisplayName" 
+                          SelectedValuePath="Id"/>
+
+                <Label Content="حساب مجمع الإهلاك:"/>
+                <ComboBox ItemsSource="{Binding AssetAccounts}" 
+                          SelectedItem="{Binding Asset.AccumulatedDepreciationAccount}"
+                          SelectedValue="{Binding Asset.AccumulatedDepreciationAccountId, UpdateSourceTrigger=PropertyChanged}"
+                          DisplayMemberPath="DisplayName" 
+                          SelectedValuePath="Id"/>
+
+                <Label Content="حساب مصروف الإهلاك:"/>
+                <ComboBox ItemsSource="{Binding ExpenseAccounts}" 
+                          SelectedItem="{Binding Asset.DepreciationExpenseAccount}"
+                          SelectedValue="{Binding Asset.DepreciationExpenseAccountId, UpdateSourceTrigger=PropertyChanged}"
+                          DisplayMemberPath="DisplayName" 
+                          SelectedValuePath="Id"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="حفظ" Style="{DynamicResource PrimaryButtonStyle}" Command="{Binding SaveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+            <Button Content="إلغاء" Style="{DynamicResource SecondaryButtonStyle}" Margin="10,0,0,0" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

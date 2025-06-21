@@ -1,0 +1,116 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <FlowDocument x:Key="PackingSlip" PagePadding="40" ColumnWidth="800" FlowDirection="RightToLeft" FontFamily="Arial" FontSize="13">
+        <Table>
+            <Table.Columns>
+                <TableColumn Width="3*"/>
+                <TableColumn Width="1.2*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell>
+                        <Paragraph FontSize="26" FontWeight="Bold" Foreground="#2a4d7a">
+                            <Run x:Name="CompanyNameRun" Text="اسم الشركة"/>
+                        </Paragraph>
+                        <Paragraph>
+                            <Run x:Name="CompanyAddressRun" Text="عنوان الشركة"/>
+                        </Paragraph>
+                    </TableCell>
+                    <TableCell>
+                        <BlockUIContainer>
+                            <Border BorderBrush="#2a4d7a" BorderThickness="1" CornerRadius="8" Padding="4" Margin="0,0,0,8">
+                                <Image x:Name="CompanyLogoImage" Height="80" HorizontalAlignment="Center"/>
+                            </Border>
+                        </BlockUIContainer>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <Paragraph FontSize="22" FontWeight="Bold" TextAlignment="Center" Margin="0,20,0,10" Foreground="#2a4d7a">
+            بوليصة الشحن (Packing Slip)
+        </Paragraph>
+
+        <Table CellSpacing="0" Margin="0,10,0,20">
+            <Table.Columns>
+                <TableColumn Width="*"/>
+                <TableColumn Width="*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="1" Padding="10">
+                        <BlockUIContainer>
+                            <StackPanel>
+                                <TextBlock FontWeight="Bold" Margin="0,0,0,5">بيانات الشحن:</TextBlock>
+                                <TextBlock>رقم الشحنة: <Run x:Name="ShipmentNumberRun"/></TextBlock>
+                                <TextBlock>تاريخ الشحن: <Run x:Name="ShipmentDateRun"/></TextBlock>
+                                <TextBlock>أمر البيع: <Run x:Name="OrderNumberRun"/></TextBlock>
+                            </StackPanel>
+                        </BlockUIContainer>
+                    </TableCell>
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="1,1,1,1" Padding="10">
+                        <BlockUIContainer>
+                            <StackPanel>
+                                <TextBlock FontWeight="Bold" Margin="0,0,0,5">الشحن إلى:</TextBlock>
+                                <TextBlock><Run x:Name="CustomerNameRun"/></TextBlock>
+                                <TextBlock><Run x:Name="ShippingAddressRun"/></TextBlock>
+                            </StackPanel>
+                        </BlockUIContainer>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <Table CellSpacing="0" BorderBrush="#2a4d7a" BorderThickness="1">
+            <Table.Columns>
+                <TableColumn Width="0.7*"/>
+                <TableColumn Width="1.3*"/>
+                <TableColumn Width="3*"/>
+                <TableColumn Width="1*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow Background="#e3eaf6" FontWeight="Bold">
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph TextAlignment="Center">#</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph TextAlignment="Center">كود الصنف</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph TextAlignment="Center">وصف الصنف</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="0,0,0,1" Padding="5">
+                        <Paragraph TextAlignment="Center">الكمية</Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+            <TableRowGroup x:Name="ItemsTableRowGroup"/>
+        </Table>
+
+        <Table Margin="0,50,0,0">
+            <Table.Columns>
+                <TableColumn Width="*"/>
+                <TableColumn Width="*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell>
+                        <Paragraph TextAlignment="Center" FontWeight="Bold">استلمت بواسطة:</Paragraph>
+                        <Paragraph TextAlignment="Center" Margin="0,30,0,0">.........................</Paragraph>
+                        <Paragraph TextAlignment="Center">التوقيع</Paragraph>
+                    </TableCell>
+                    <TableCell>
+                        <Paragraph TextAlignment="Center" FontWeight="Bold">تم التجهيز بواسطة:</Paragraph>
+                        <Paragraph TextAlignment="Center" Margin="0,30,0,0">.........................</Paragraph>
+                        <Paragraph TextAlignment="Center">التوقيع</Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <Paragraph Margin="0,40,0,0" TextAlignment="Center" FontStyle="Italic" FontSize="12">
+            شكراً لتعاملكم معنا!
+        </Paragraph>
+    </FlowDocument>
+</ResourceDictionary>

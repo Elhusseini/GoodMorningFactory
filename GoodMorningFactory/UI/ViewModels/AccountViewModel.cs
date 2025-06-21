@@ -1,34 +1,34 @@
-﻿// UI/ViewModels/AccountViewModel.cs
-// *** تحديث: تمت إضافة حقل الرصيد وخاصية العرض المنسق ***
-using GoodMorningFactory.Data.Models;
+﻿using GoodMorningFactory.Data.Models;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Globalization;
 
 namespace GoodMorningFactory.UI.ViewModels
 {
-    public class AccountViewModel : INotifyPropertyChanged
+    /// <summary>
+    /// ViewModel يمثل عقدة واحدة (حساب واحد) في شجرة الحسابات.
+    /// تم تحديثه ليتوافق مع الكود الأصلي مع إضافة تحسينات MVVM.
+    /// </summary>
+    public class AccountViewModel : BaseViewModel
     {
-        public Account Account { get; set; }
+        /// <summary>
+        /// الموديل الأصلي للحساب.
+        /// </summary>
+        public Account Model { get; }
+
+        public int Id => Model.Id;
+        public string DisplayName => $"{Model.AccountNumber} - {Model.AccountName}";
         public ObservableCollection<AccountViewModel> Children { get; set; }
 
-        // --- بداية التحديث ---
-        public decimal Balance { get; set; }
-
-        // خاصية لعرض اسم الحساب مع رصيده بشكل منسق
-        public string DisplayName => $"{Account.AccountName} [{Balance.ToString("C", new CultureInfo("ar-KW"))}]";
-        // --- نهاية التحديث ---
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set { _isSelected = value; OnPropertyChanged(); }
+        }
 
         public AccountViewModel(Account account)
         {
-            Account = account;
+            Model = account;
             Children = new ObservableCollection<AccountViewModel>();
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

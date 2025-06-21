@@ -1,5 +1,5 @@
 ﻿// Data/Models/PurchaseRequisitionItem.cs
-// *** ملف جديد: يمثل سطراً واحداً (بنداً) في طلب الشراء ***
+// *** الكود الكامل والمصحح ***
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -14,8 +14,14 @@ namespace GoodMorningFactory.Data.Models
         public int PurchaseRequisitionId { get; set; }
         public virtual PurchaseRequisition PurchaseRequisition { get; set; }
 
+        public int? ProductId { get; set; }
+        public virtual Product Product { get; set; }
+
+        // ======================= بداية الإصلاح =======================
+        // تم تهيئة الحقل بقيمة نص فارغ لمنع خطأ NOT NULL في قاعدة البيانات
         [Required]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
+        // ======================== نهاية الإصلاح ========================
 
         [Required]
         public decimal Quantity { get; set; }

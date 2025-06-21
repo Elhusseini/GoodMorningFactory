@@ -1,11 +1,10 @@
-﻿<!-- UI/Views/AddEditEmployeeWindow.xaml -->
-<!-- *** ملف جديد: نافذة إضافة وتعديل ملف موظف *** -->
-<Window x:Class="GoodMorningFactory.UI.Views.AddEditEmployeeWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditEmployeeWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        mc:Ignorable="d" Title="إضافة / تعديل ملف موظف" Height="550" Width="800"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="{Binding WindowTitle}" Height="550" Width="800"
         WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
     <Grid Margin="15">
         <Grid.RowDefinitions>
@@ -28,15 +27,15 @@
                         <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="الاسم الأول:"/>
-                    <TextBox x:Name="FirstNameTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding Employee.FirstName, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Row="1" Grid.Column="0" Content="اسم العائلة:"/>
-                    <TextBox x:Name="LastNameTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding Employee.LastName, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Row="2" Grid.Column="0" Content="تاريخ الميلاد:"/>
-                    <DatePicker x:Name="DobDatePicker" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                    <DatePicker Grid.Row="2" Grid.Column="1" Margin="5" SelectedDate="{Binding Employee.DateOfBirth}"/>
                     <Label Grid.Row="3" Grid.Column="0" Content="الجنس:"/>
-                    <ComboBox x:Name="GenderComboBox" Grid.Row="3" Grid.Column="1" Margin="5"/>
+                    <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" ItemsSource="{Binding Genders}" SelectedItem="{Binding Employee.Gender}"/>
                     <Label Grid.Row="4" Grid.Column="0" Content="الجنسية:"/>
-                    <TextBox x:Name="NationalityTextBox" Grid.Row="4" Grid.Column="1" Margin="5"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Margin="5" Text="{Binding Employee.Nationality, UpdateSourceTrigger=PropertyChanged}"/>
                 </Grid>
             </TabItem>
             <TabItem Header="معلومات التوظيف">
@@ -52,13 +51,13 @@
                         <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="كود الموظف:"/>
-                    <TextBox x:Name="EmployeeCodeTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding Employee.EmployeeCode, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Row="1" Grid.Column="0" Content="تاريخ التعيين:"/>
-                    <DatePicker x:Name="HireDatePicker" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                    <DatePicker Grid.Row="1" Grid.Column="1" Margin="5" SelectedDate="{Binding Employee.HireDate}"/>
                     <Label Grid.Row="2" Grid.Column="0" Content="المسمى الوظيفي:"/>
-                    <TextBox x:Name="JobTitleTextBox" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding Employee.JobTitle, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Row="3" Grid.Column="0" Content="القسم:"/>
-                    <TextBox x:Name="DepartmentTextBox" Grid.Row="3" Grid.Column="1" Margin="5"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Margin="5" Text="{Binding Employee.Department, UpdateSourceTrigger=PropertyChanged}"/>
                 </Grid>
             </TabItem>
             <TabItem Header="معلومات الراتب">
@@ -73,11 +72,11 @@
                         <RowDefinition/>
                     </Grid.RowDefinitions>
                     <Label Grid.Row="0" Grid.Column="0" Content="الراتب الأساسي:"/>
-                    <TextBox x:Name="BasicSalaryTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding Employee.BasicSalary, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Row="1" Grid.Column="0" Content="بدل السكن:"/>
-                    <TextBox x:Name="HousingAllowanceTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding Employee.HousingAllowance, UpdateSourceTrigger=PropertyChanged}"/>
                     <Label Grid.Row="2" Grid.Column="0" Content="بدل المواصلات:"/>
-                    <TextBox x:Name="TransportAllowanceTextBox" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding Employee.TransportationAllowance, UpdateSourceTrigger=PropertyChanged}"/>
                 </Grid>
             </TabItem>
         </TabControl>

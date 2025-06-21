@@ -1,0 +1,73 @@
+﻿// GoodMorningFactory/Data/Models/StockMovement.cs
+using System;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace GoodMorningFactory.Data.Models
+{
+    public enum StockMovementType
+    {
+        [Description("استلام مشتريات")]
+        PurchaseReceipt,
+
+        [Description("صرف مبيعات")]
+        SalesShipment,
+
+        [Description("صرف للإنتاج")]
+        ProductionConsumption,
+
+        [Description("إدخال إنتاج تام")]
+        FinishedGoodsProduction,
+
+        [Description("مرتجع مبيعات")]
+        SalesReturn,
+
+        [Description("مرتجع مشتريات")]
+        PurchaseReturn,
+
+        [Description("تسوية جرد (زيادة)")]
+        AdjustmentIncrease,
+
+        [Description("تسوية جرد (نقص)")]
+        AdjustmentDecrease,
+
+        [Description("تحويل (خروج)")]
+        TransferOut,
+
+        [Description("تحويل (دخول)")]
+        TransferIn
+    }
+
+    [Table("StockMovements")]
+    public class StockMovement
+    {
+        [Key]
+        public long Id { get; set; }
+
+        [Required]
+        public int ProductId { get; set; }
+        public virtual Product Product { get; set; }
+
+        [Required]
+        public int StorageLocationId { get; set; }
+        public virtual StorageLocation StorageLocation { get; set; }
+
+        [Required]
+        public DateTime MovementDate { get; set; }
+
+        [Required]
+        public StockMovementType MovementType { get; set; }
+
+        [Required]
+        public int Quantity { get; set; }
+
+        [Column(TypeName = "decimal(18, 4)")]
+        public decimal UnitCost { get; set; }
+
+        public string ReferenceDocument { get; set; }
+
+        public int? UserId { get; set; }
+        public virtual User User { get; set; }
+    }
+}

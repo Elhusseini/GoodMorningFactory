@@ -1,73 +1,29 @@
-﻿// UI/Views/ManagePermissionsWindow.xaml.cs
-// *** ملف جديد: الكود الخلفي لنافذة إدارة الصلاحيات ***
-using GoodMorningFactory.Data;
-using GoodMorningFactory.Data.Models;
-using GoodMorningFactory.UI.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using GoodMorningFactory.UI.ViewModels;
 using System.Windows;
 
 namespace GoodMorningFactory.UI.Views
 {
     public partial class ManagePermissionsWindow : Window
     {
-        private readonly int _roleId;
-        private List<PermissionViewModel> _permissionTree = new List<PermissionViewModel>();
-
-        public ManagePermissionsWindow(int roleId)
+        public ManagePermissionsWindow(int roleId, bool isReadOnly = false)
         {
             InitializeComponent();
-            _roleId = roleId;
-            LoadPermissions();
+            DataContext = new ManagePermissionsViewModel(roleId, isReadOnly);
         }
 
-        private void LoadPermissions()
+        // The Save button in the ViewModel doesn't close the window, so we handle it here.
+        private async void SavePermissions_Click(object sender, RoutedEventArgs e)
         {
-            using (var db = new DatabaseContext())
+            if (DataContext is ManagePermissionsViewModel vm)
             {
-                var role = db.Roles.Find(_roleId);
-                if (role == null) { this.Close(); return; }
-                RoleNameTextBlock.Text = $"صلاحيات الدور: {role.Name}";
-
-                var allPermissions = db.Permissions.ToList();
-                var rolePermissions = db.RolePermissions.Where(rp => rp.RoleId == _roleId).Select(rp => rp.PermissionId).ToList();
-
-                var grouped = allPermissions.GroupBy(p => p.Module);
-
-                foreach (var group in grouped)
+                var saveCommand = vm.SaveCommand;
+                if (saveCommand.CanExecute(null))
                 {
-                    var moduleNode = new PermissionViewModel(group.Key, false);
-                    foreach (var permission in group)
-                    {
-                        moduleNode.Children.Add(new PermissionViewModel(permission.Name, rolePermissions.Contains(permission.Id)) { PermissionId = permission.Id });
-                    }
-                    _permissionTree.Add(moduleNode);
+                    saveCommand.Execute(null);
+                    // A simple way to wait for async command to finish before closing
+                    await System.Threading.Tasks.Task.Delay(500);
+                    this.DialogResult = true;
                 }
-                PermissionsTreeView.ItemsSource = _permissionTree;
-            }
-        }
-
-        private void SavePermissions_Click(object sender, RoutedEventArgs e)
-        {
-            using (var db = new DatabaseContext())
-            {
-                var existingPermissions = db.RolePermissions.Where(rp => rp.RoleId == _roleId);
-                db.RolePermissions.RemoveRange(existingPermissions);
-
-                foreach (var moduleNode in _permissionTree)
-                {
-                    foreach (var permissionNode in moduleNode.Children)
-                    {
-                        if (permissionNode.IsSelected)
-                        {
-                            db.RolePermissions.Add(new RolePermission { RoleId = _roleId, PermissionId = permissionNode.PermissionId });
-                        }
-                    }
-                }
-                db.SaveChanges();
-                MessageBox.Show("تم حفظ الصلاحيات بنجاح.");
-                this.Close();
             }
         }
     }

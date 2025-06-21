@@ -1,12 +1,23 @@
 ﻿<!-- UI/Views/AddEditCustomerWindow.xaml -->
-<!-- نافذة إضافة وتعديل عميل -->
+<!-- 
+    تم تحديث هذه الواجهة بالكامل لتتبع نمط MVVM.
+    - تم ربط عنوان النافذة بـ WindowTitle في الـ ViewModel.
+    - تم ربط جميع حقول الإدخال بالخصائص الموجودة في CurrentCustomer داخل الـ ViewModel.
+    - تم استبدال أحداث النقر Click بربط الأوامر Commands (SaveCommand و CancelCommand).
+-->
 <Window x:Class="GoodMorningFactory.UI.Views.AddEditCustomerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        mc:Ignorable="d" Title="إضافة / تعديل عميل" Height="500" Width="600"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" FlowDirection="RightToLeft">
+        xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:AddEditCustomerViewModel, IsDesignTimeCreatable=False}"
+        Title="{Binding WindowTitle}" 
+        Height="500" Width="600"
+        WindowStartupLocation="CenterOwner" 
+        ResizeMode="NoResize" 
+        FlowDirection="RightToLeft">
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -30,26 +41,34 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Grid.Column="0" Content="كود العميل:"/>
-                    <TextBox x:Name="CustomerCodeTextBox" Grid.Row="0" Grid.Column="1" Margin="5" IsReadOnly="True" Background="#EEEEEE"/>
+                    <Label Grid.Row="0" Grid.Column="0" Content="كود العميل:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="5" 
+                             Text="{Binding CurrentCustomer.CustomerCode}" 
+                             IsReadOnly="True" Background="#EEEEEE"/>
 
-                    <Label Grid.Row="1" Grid.Column="0" Content="اسم العميل:"/>
-                    <TextBox x:Name="CustomerNameTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="1" Grid.Column="0" Content="اسم العميل:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Margin="5" 
+                             Text="{Binding CurrentCustomer.CustomerName, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <Label Grid.Row="2" Grid.Column="0" Content="شخص الاتصال:"/>
-                    <TextBox x:Name="ContactPersonTextBox" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="2" Grid.Column="0" Content="شخص الاتصال:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Margin="5" 
+                             Text="{Binding CurrentCustomer.ContactPerson, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <Label Grid.Row="3" Grid.Column="0" Content="رقم الهاتف:"/>
-                    <TextBox x:Name="PhoneNumberTextBox" Grid.Row="3" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="3" Grid.Column="0" Content="رقم الهاتف:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Margin="5" 
+                             Text="{Binding CurrentCustomer.PhoneNumber, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <Label Grid.Row="4" Grid.Column="0" Content="البريد الإلكتروني:"/>
-                    <TextBox x:Name="EmailTextBox" Grid.Row="4" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="4" Grid.Column="0" Content="البريد الإلكتروني:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Margin="5" 
+                             Text="{Binding CurrentCustomer.Email, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <Label Grid.Row="5" Grid.Column="0" Content="الرقم الضريبي:"/>
-                    <TextBox x:Name="TaxNumberTextBox" Grid.Row="5" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="5" Grid.Column="0" Content="الرقم الضريبي:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="5" Grid.Column="1" Margin="5" 
+                             Text="{Binding CurrentCustomer.TaxNumber, UpdateSourceTrigger=PropertyChanged}"/>
 
-                    <Label Grid.Row="6" Grid.Column="0" Content="الحالة:"/>
-                    <CheckBox x:Name="IsActiveCheckBox" Grid.Row="6" Grid.Column="1" Content="نشط" VerticalAlignment="Center" Margin="5"/>
+                    <Label Grid.Row="6" Grid.Column="0" Content="الحالة:" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Row="6" Grid.Column="1" Content="نشط" VerticalAlignment="Center" Margin="5"
+                              IsChecked="{Binding CurrentCustomer.IsActive}"/>
 
                 </Grid>
             </TabItem>
@@ -59,18 +78,22 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <GroupBox Header="عنوان الفوترة" Grid.Row="0">
-                        <TextBox x:Name="BillingAddressTextBox" Margin="5" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                        <TextBox Margin="5" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                 Text="{Binding CurrentCustomer.BillingAddress, UpdateSourceTrigger=PropertyChanged}"/>
                     </GroupBox>
 
                     <GroupBox Header="عنوان الشحن" Grid.Row="1">
-                        <TextBox x:Name="ShippingAddressTextBox" Margin="5" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+                        <TextBox Margin="5" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                 Text="{Binding CurrentCustomer.ShippingAddress, UpdateSourceTrigger=PropertyChanged}"/>
                     </GroupBox>
 
                     <Label Grid.Row="2" Content="شروط الدفع:" VerticalAlignment="Center"/>
-                    <TextBox x:Name="PaymentTermsTextBox" Grid.Row="2" Margin="90,5,5,5"/>
+                    <TextBox Grid.Row="2" Margin="90,5,5,5"
+                             Text="{Binding CurrentCustomer.DefaultPaymentTerms, UpdateSourceTrigger=PropertyChanged}"/>
                 </Grid>
             </TabItem>
             <TabItem Header="معلومات مالية">
@@ -83,15 +106,22 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Grid.Column="0" Content="حد الائتمان:"/>
-                    <TextBox x:Name="CreditLimitTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="0" Grid.Column="0" Content="حد الائتمان:" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Margin="5"
+                             Text="{Binding CurrentCustomer.CreditLimit, UpdateSourceTrigger=PropertyChanged}"/>
                 </Grid>
             </TabItem>
         </TabControl>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0">
-            <Button Content="💾 حفظ" Width="100" Margin="5" Padding="5" Click="SaveButton_Click"/>
-            <Button Content="إلغاء" Width="100" Margin="5" Padding="5" IsCancel="True"/>
+            <!-- تم ربط الأزرار بالأوامر في الـ ViewModel -->
+            <Button Content="💾 حفظ" Width="100" Margin="5" Padding="5" 
+                    Command="{Binding SaveCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+
+            <Button Content="إلغاء" Width="100" Margin="5" Padding="5" IsCancel="True"
+                    Command="{Binding CancelCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
         </StackPanel>
     </Grid>
 </Window>

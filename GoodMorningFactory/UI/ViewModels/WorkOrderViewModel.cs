@@ -1,23 +1,16 @@
-﻿// UI/ViewModels/WorkOrderViewModel.cs
-// *** ملف جديد: ViewModel لعرض بيانات أوامر العمل بشكل متقدم ***
-using GoodMorningFactory.Data.Models;
+﻿using GoodMorningFactory.Data.Models;
+using System;
 
 namespace GoodMorningFactory.UI.ViewModels
 {
-    public class WorkOrderViewModel
+    public class WorkOrderViewModel : BaseViewModel
     {
-        // الكائن الأصلي لأمر العمل
-        public WorkOrder Order { get; set; }
-
-        // خاصية محسوبة لمعرفة ما إذا كانت المواد قد تم استهلاكها
-        public bool AreMaterialsConsumed { get; set; }
-
-        // الخصائص المعروضة في الواجهة
-        public string WorkOrderNumber => Order.WorkOrderNumber;
-        public Product FinishedGood => Order.FinishedGood;
-        public int QuantityToProduce => Order.QuantityToProduce;
-        public int QuantityProduced => Order.QuantityProduced;
-        public System.DateTime PlannedStartDate => Order.PlannedStartDate;
-        public WorkOrderStatus Status => Order.Status;
+        public int Id { get; set; }
+        public string WorkOrderNumber { get; set; }
+        public string FinishedGoodName { get; set; }
+        public int QuantityToProduce { get; set; }
+        public int QuantityProduced { get; set; }
+        public DateTime PlannedStartDate { get; set; }
+        public WorkOrderStatus Status { get; set; }
     }
 }

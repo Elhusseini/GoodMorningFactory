@@ -1,0 +1,35 @@
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditLeaveTypeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="{Binding WindowTitle}" Height="300" Width="450"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="اسم النوع:"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding LeaveType.Name, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <Label Grid.Row="1" Grid.Column="0" Content="الوصف:"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding LeaveType.Description, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <Label Grid.Row="2" Grid.Column="0" Content="أيام مستحقة سنوياً:"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding LeaveType.DaysPerYear, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <CheckBox Grid.Row="3" Grid.Column="1" Content="إجازة مدفوعة الأجر" Margin="5" IsChecked="{Binding LeaveType.IsPaid}"/>
+
+        <Button Content="💾 حفظ" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" Width="100" Margin="5" Click="SaveButton_Click"/>
+    </Grid>
+</Window>

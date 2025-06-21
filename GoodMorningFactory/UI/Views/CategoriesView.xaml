@@ -1,32 +1,61 @@
-﻿<!-- UI/Views/CategoriesView.xaml -->
-<!-- *** ملف جديد: واجهة عرض وإدارة فئات المنتجات *** -->
-<UserControl x:Class="GoodMorningFactory.UI.Views.CategoriesView"
+﻿<UserControl x:Class="GoodMorningFactory.UI.Views.CategoriesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="800"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             Background="#F5F5F5" FlowDirection="RightToLeft">
-    <Grid Margin="10">
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800"
+             Background="#F5F5F5" FlowDirection="RightToLeft"
+             d:DataContext="{d:DesignInstance Type=vm:CategoriesViewViewModel, IsDesignTimeCreatable=True}">
+    <Grid Margin="15">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <ToolBarTray Grid.Row="0">
-            <ToolBar>
-                <Button Content="➕ إضافة فئة جديدة" Click="AddCategory_Click"/>
-                <Button Content="✏️ تعديل الفئة المحددة" Click="EditCategory_Click"/>
-                <Button Content="🗑️ حذف الفئة المحددة" Click="DeleteCategory_Click"/>
-            </ToolBar>
-        </ToolBarTray>
+        <!-- 1. عنوان الشاشة -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <TextBlock Text="إدارة فئات المنتجات" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+        </StackPanel>
 
-        <TreeView x:Name="CategoriesTreeView" Grid.Row="1" Margin="5">
-            <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
-                    <TextBlock Text="{Binding DisplayName}" Margin="2"/>
-                </HierarchicalDataTemplate>
-            </TreeView.ItemTemplate>
-        </TreeView>
+        <!-- 2. شريط الأدوات -->
+        <Border Grid.Row="1" Background="White" CornerRadius="5" Padding="5" Margin="0,0,0,10" BorderBrush="#DDD" BorderThickness="1">
+            <ToolBarTray>
+                <ToolBar>
+                    <!-- تم حذف الستايل غير الموجود -->
+                    <Button Content="➕ إضافة فئة" Command="{Binding AddCategoryCommand}"/>
+                    <Button Content="✏️ تعديل الفئة" Command="{Binding EditCategoryCommand}"/>
+                    <Button Content="🗑️ حذف الفئة" Command="{Binding DeleteCategoryCommand}"/>
+                    <Separator/>
+                    <Button Content="🔄 تحديث" Command="{Binding RefreshCommand}"/>
+                </ToolBar>
+            </ToolBarTray>
+        </Border>
+
+        <!-- 3. عرض شجرة الفئات -->
+        <Border Grid.Row="2" Background="White" CornerRadius="5" BorderBrush="#DDD" BorderThickness="1">
+            <TreeView x:Name="CategoriesTreeView" ItemsSource="{Binding CategoriesTree}" Margin="5">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                        <Setter Property="Padding" Value="3"/>
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <TextBlock Text="{Binding DisplayName}" Margin="2"/>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+                <!-- ربط حدث تغيير العنصر المحدد بالأمر في الـ ViewModel -->
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectedItemChanged">
+                        <i:InvokeCommandAction Command="{Binding SelectedItemChangedCommand}" CommandParameter="{Binding ElementName=CategoriesTreeView, Path=SelectedItem}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </TreeView>
+        </Border>
     </Grid>
 </UserControl>

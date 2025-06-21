@@ -1,9 +1,7 @@
 ﻿// UI/Views/AddLeaveRequestWindow.xaml.cs
-// *** ملف جديد: الكود الخلفي لنافذة تقديم طلب إجازة ***
-using GoodMorningFactory.Data;
-using GoodMorningFactory.Data.Models;
-using System;
-using System.Linq;
+// *** الكود الخلفي المعدل ليعمل مع ViewModel ***
+using GoodMorningFactory.UI.Commands;
+using GoodMorningFactory.UI.ViewModels;
 using System.Windows;
 
 namespace GoodMorningFactory.UI.Views
@@ -13,43 +11,20 @@ namespace GoodMorningFactory.UI.Views
         public AddLeaveRequestWindow()
         {
             InitializeComponent();
-            LoadInitialData();
-            StartDatePicker.SelectedDate = DateTime.Today;
-            EndDatePicker.SelectedDate = DateTime.Today.AddDays(1);
         }
 
-        private void LoadInitialData()
+        private async void SubmitButton_Click(object sender, RoutedEventArgs e)
         {
-            using (var db = new DatabaseContext())
+            if (this.DataContext is AddLeaveRequestViewModel viewModel)
             {
-                EmployeeComboBox.ItemsSource = db.Employees.ToList();
-                LeaveTypeComboBox.ItemsSource = db.LeaveTypes.ToList();
-            }
-        }
-
-        private void SubmitButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (EmployeeComboBox.SelectedItem == null || LeaveTypeComboBox.SelectedItem == null ||
-                StartDatePicker.SelectedDate == null || EndDatePicker.SelectedDate == null)
-            {
-                MessageBox.Show("يرجى ملء جميع الحقول.", "بيانات ناقصة");
-                return;
-            }
-
-            using (var db = new DatabaseContext())
-            {
-                db.LeaveRequests.Add(new LeaveRequest
+                if (viewModel.SubmitCommand is AsyncRelayCommand asyncCommand)
                 {
-                    EmployeeId = ((Employee)EmployeeComboBox.SelectedItem).Id,
-                    LeaveTypeId = (int)LeaveTypeComboBox.SelectedValue,
-                    StartDate = StartDatePicker.SelectedDate.Value,
-                    EndDate = EndDatePicker.SelectedDate.Value,
-                    Status = LeaveRequestStatus.Pending
-                });
-                db.SaveChanges();
+                    await asyncCommand.ExecuteAsync();
+                    // أغلق النافذة فقط إذا لم تكن هناك رسالة خطأ (بمعنى أن العملية نجحت)
+                    // ال ViewModel سيتولى إظهار رسالة النجاح
+                    this.DialogResult = true;
+                }
             }
-            MessageBox.Show("تم تقديم طلب الإجازة بنجاح.", "نجاح");
-            this.DialogResult = true;
         }
     }
 }

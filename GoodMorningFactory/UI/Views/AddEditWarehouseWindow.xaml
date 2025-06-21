@@ -1,31 +1,35 @@
-﻿<!-- UI/Views/AddEditWarehouseWindow.xaml -->
-<!-- *** ملف جديد: نافذة إضافة وتعديل المخازن *** -->
-<Window x:Class="GoodMorningFactory.UI.Views.AddEditWarehouseWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditWarehouseWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        mc:Ignorable="d" Title="إضافة / تعديل مخزن" Height="300" Width="500"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
+        mc:Ignorable="d" 
+        Title="إضافة / تعديل مخزن" Height="300" Width="500"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft"
+        d:DataContext="{d:DesignInstance Type=vm:AddEditWarehouseViewModel, IsDesignTimeCreatable=True}">
     <Grid Margin="15">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Content="كود المخزن:"/>
-        <TextBox x:Name="CodeTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
-        <Label Grid.Row="1" Grid.Column="0" Content="اسم المخزن:"/>
-        <TextBox x:Name="NameTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
-        <Label Grid.Row="2" Grid.Column="0" Content="العنوان:"/>
-        <TextBox x:Name="AddressTextBox" Grid.Row="2" Grid.Column="1" Margin="5"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding Code, UpdateSourceTrigger=PropertyChanged}"/>
 
-        <Button Content="💾 حفظ" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left" Width="100" Margin="5" Click="SaveButton_Click"/>
+        <Label Grid.Row="1" Grid.Column="0" Content="اسم المخزن:"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <Label Grid.Row="2" Grid.Column="0" Content="العنوان:"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <Button Content="💾 حفظ" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left" Width="100" Margin="5" 
+                Command="{Binding SaveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
     </Grid>
 </Window>

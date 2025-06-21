@@ -1,13 +1,13 @@
-﻿<!-- UI/Views/ReportProductionWindow.xaml -->
-<!-- *** تحديث: تمت إضافة حقل لتسجيل الكمية التالفة *** -->
-<Window x:Class="GoodMorningFactory.UI.Views.ReportProductionWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.ReportProductionWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
         mc:Ignorable="d"
         Title="تسجيل الإنتاج المكتمل" Height="400" Width="500"
-        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft"
+        d:DataContext="{d:DesignInstance Type=vm:ReportProductionViewModel}">
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -25,10 +25,10 @@
         </Grid.ColumnDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Content="أمر العمل:"/>
-        <TextBlock x:Name="WorkOrderNumberTextBlock" Grid.Row="0" Grid.Column="1" FontWeight="Bold" VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding WorkOrderNumber}" FontWeight="Bold" VerticalAlignment="Center"/>
 
         <Label Grid.Row="1" Grid.Column="0" Content="المنتج:"/>
-        <TextBlock x:Name="ProductNameTextBlock" Grid.Row="1" Grid.Column="1" FontWeight="Bold" VerticalAlignment="Center"/>
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ProductName}" FontWeight="Bold" VerticalAlignment="Center"/>
 
         <Grid Grid.Row="2" Grid.ColumnSpan="2" Margin="0,10">
             <Grid.ColumnDefinitions>
@@ -38,29 +38,31 @@
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" HorizontalAlignment="Center">
                 <TextBlock Text="الكمية المطلوبة" Foreground="Gray"/>
-                <TextBlock x:Name="OrderedQuantityTextBlock" FontSize="16" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding OrderedQuantity}" FontSize="16" FontWeight="SemiBold"/>
             </StackPanel>
             <StackPanel Grid.Column="1" HorizontalAlignment="Center">
                 <TextBlock Text="تم إنتاجه سابقاً" Foreground="Gray"/>
-                <TextBlock x:Name="PreviouslyProducedTextBlock" FontSize="16" FontWeight="SemiBold" Foreground="Green"/>
+                <TextBlock Text="{Binding PreviouslyProduced}" FontSize="16" FontWeight="SemiBold" Foreground="Green"/>
             </StackPanel>
             <StackPanel Grid.Column="2" HorizontalAlignment="Center">
                 <TextBlock Text="الكمية المتبقية" Foreground="Gray"/>
-                <TextBlock x:Name="RemainingQuantityTextBlock" FontSize="16" FontWeight="SemiBold" Foreground="Red"/>
+                <TextBlock Text="{Binding RemainingQuantity}" FontSize="16" FontWeight="SemiBold" Foreground="Red"/>
             </StackPanel>
         </Grid>
 
         <Separator Grid.Row="3" Grid.ColumnSpan="2"/>
 
         <Label Grid.Row="4" Grid.Column="0" Content="الكمية المنتجة (السليمة):" VerticalAlignment="Center"/>
-        <TextBox x:Name="ProducedQuantityTextBox" Grid.Row="4" Grid.Column="1" Margin="5" VerticalAlignment="Center" FontSize="16"/>
+        <TextBox Grid.Row="4" Grid.Column="1" Margin="5" VerticalAlignment="Center" FontSize="16" Text="{Binding ProducedQuantity, UpdateSourceTrigger=PropertyChanged}"/>
 
         <Label Grid.Row="5" Grid.Column="0" Content="الكمية التالفة (Scrap):" VerticalAlignment="Center"/>
-        <TextBox x:Name="ScrappedQuantityTextBox" Grid.Row="5" Grid.Column="1" Margin="5" VerticalAlignment="Center" FontSize="16"/>
+        <TextBox Grid.Row="5" Grid.Column="1" Margin="5" VerticalAlignment="Center" FontSize="16" Text="{Binding ScrappedQuantity, UpdateSourceTrigger=PropertyChanged}"/>
 
         <Label Grid.Row="6" Grid.Column="0" Content="سبب الهدر:" VerticalAlignment="Top" Margin="0,8,0,0"/>
-        <TextBox x:Name="ScrapReasonTextBox" Grid.Row="6" Grid.Column="1" Margin="5" AcceptsReturn="True" TextWrapping="Wrap" Height="50"/>
+        <TextBox Grid.Row="6" Grid.Column="1" Margin="5" AcceptsReturn="True" TextWrapping="Wrap" Height="50" Text="{Binding ScrapReason, UpdateSourceTrigger=PropertyChanged}"/>
 
-        <Button Grid.Row="7" Grid.Column="1" Content="✅ تأكيد الإنتاج" HorizontalAlignment="Left" Padding="15,5" Click="ConfirmProductionButton_Click"/>
+        <Button Grid.Row="7" Grid.Column="1" Content="✅ تأكيد الإنتاج" HorizontalAlignment="Left" Padding="15,5" 
+                Command="{Binding ConfirmProductionCommand}"
+                CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
     </Grid>
 </Window>

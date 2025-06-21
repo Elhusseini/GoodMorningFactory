@@ -1,8 +1,9 @@
 ﻿// Data/Models/GoodsReceiptNote.cs
-// *** تحديث: تمت إضافة حقل لتتبع الفوترة ***
+// *** الكود الكامل والنهائي ***
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GoodMorningFactory.Data.Models
 {
@@ -27,7 +28,19 @@ namespace GoodMorningFactory.Data.Models
         public int PurchaseOrderId { get; set; }
         public virtual PurchaseOrder PurchaseOrder { get; set; }
 
-        public bool IsInvoiced { get; set; } = false;
+        /// <summary>
+        /// معرّف فاتورة المشتريات التي تم إنشاؤها من سند الاستلام هذا.
+        /// قيمته تكون null إذا لم تتم الفوترة بعد.
+        /// </summary>
+        public int? PurchaseId { get; set; }
+        public virtual Purchase Purchase { get; set; }
+
+        /// <summary>
+        /// خاصية للقراءة فقط لتحديد ما إذا كان قد تمت فوترة السند.
+        /// هذه الخاصية لا تُحفظ في قاعدة البيانات وهي موجودة لتسهيل الربط في الواجهة.
+        /// </summary>
+        [NotMapped]
+        public bool IsInvoiced => PurchaseId.HasValue;
 
         public virtual ICollection<GoodsReceiptNoteItem> GoodsReceiptNoteItems { get; set; }
     }

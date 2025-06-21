@@ -1,28 +1,25 @@
-﻿<!-- UI/Views/AddEditPriceListWindow.xaml -->
-<!-- *** ملف جديد: نافذة إضافة وتعديل قوائم الأسعار *** -->
-<Window x:Class="GoodMorningFactory.UI.Views.AddEditPriceListWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditPriceListWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        mc:Ignorable="d" Title="إضافة / تعديل قائمة أسعار" Height="250" Width="450"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        Title="{Binding WindowTitle}" Height="250" Width="450"
         WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
     <Grid Margin="15">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Grid.Column="0" Content="اسم القائمة:"/>
-        <TextBox x:Name="NameTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
-        <Label Grid.Row="1" Grid.Column="0" Content="الوصف:"/>
-        <TextBox x:Name="DescriptionTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
+        <StackPanel>
+            <TextBlock Text="اسم القائمة:"/>
+            <TextBox Text="{Binding PriceList.Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,0,10"/>
 
-        <Button Content="💾 حفظ" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Left" Width="100" Margin="5" Click="SaveButton_Click"/>
+            <TextBlock Text="الوصف:"/>
+            <TextBox Text="{Binding PriceList.Description, UpdateSourceTrigger=PropertyChanged}" Margin="0,5"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Button Content="💾 حفظ" IsDefault="True" Command="{Binding SaveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" MinWidth="100" Margin="5"/>
+            <Button Content="إلغاء" IsCancel="True" MinWidth="100" Margin="5"/>
+        </StackPanel>
     </Grid>
 </Window>

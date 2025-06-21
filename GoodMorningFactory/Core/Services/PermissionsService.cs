@@ -1,5 +1,5 @@
 ﻿// Core/Services/PermissionsService.cs
-// *** تحديث: تم إضافة منطق تحميل صلاحيات المستخدم والتحقق منها ***
+// *** تحديث: تم إصلاح منطق التحقق من صلاحيات المدير ليعتمد على اسم المستخدم الثابت "admin" لضمان الموثوقية ***
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +10,7 @@ namespace GoodMorningFactory.Core.Services
 {
     public static class PermissionsService
     {
-        private static List<string> _userPermissions = new List<string>();
+        private static HashSet<string> _userPermissions = new HashSet<string>();
 
         /// <summary>
         /// تحميل صلاحيات الدور المحدد وتخزينها.
@@ -24,7 +24,7 @@ namespace GoodMorningFactory.Core.Services
                                      .Where(rp => rp.RoleId == roleId)
                                      .Include(rp => rp.Permission)
                                      .Select(rp => rp.Permission.Name)
-                                     .ToList();
+                                     .ToHashSet();
             }
         }
 
@@ -35,11 +35,16 @@ namespace GoodMorningFactory.Core.Services
         /// <returns>True إذا كان المستخدم يمتلك الصلاحية.</returns>
         public static bool CanAccess(string permissionName)
         {
-            // المسؤول يمتلك جميع الصلاحيات دائماً
-            if (CurrentUserService.LoggedInUser?.Role?.Name == "مسؤول النظام")
+            // --- بداية الإصلاح الجذري ---
+            // التحقق من صلاحيات المدير العام بناءً على اسم المستخدم الثابت "admin"
+            // هذا الأسلوب أكثر أماناً من الاعتماد على رقم الدور أو اسمه المتغير.
+            if (CurrentUserService.LoggedInUser?.Username.ToLower() == "admin")
             {
                 return true;
             }
+            // --- نهاية الإصلاح ---
+
+            // التحقق من الصلاحيات الممنوحة لبقية الأدوار
             return _userPermissions.Contains(permissionName);
         }
     }

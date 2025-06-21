@@ -1,0 +1,53 @@
+﻿<UserControl x:Class="GoodMorningFactory.UI.Views.PurchaseReturnsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GoodMorningFactory.UI.Views"
+             xmlns:viewModels="clr-namespace:GoodMorningFactory.UI.ViewModels"
+             xmlns:converters="clr-namespace:GoodMorningFactory.UI.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1000"
+             Background="#F5F5F5"
+             FlowDirection="RightToLeft">
+
+    <UserControl.Resources>
+        <converters:EnumToDescriptionConverter x:Key="EnumToDescriptionConverter"/>
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </UserControl.Resources>
+
+    <UserControl.DataContext>
+        <viewModels:PurchaseReturnsViewModel/>
+    </UserControl.DataContext>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="إدارة مرتجعات المشتريات" FontSize="28" FontWeight="Bold" Foreground="#333" Margin="0,0,0,20"/>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="إضافة مرتجع جديد" Command="{Binding AddPurchaseReturnCommand}" Style="{StaticResource PrimaryButtonStyle}"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding PurchaseReturns}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="رقم المرتجع" Binding="{Binding ReturnNumber}" Width="1.5*"/>
+                <DataGridTextColumn Header="تاريخ المرتجع" Binding="{Binding ReturnDate, StringFormat='dd/MM/yyyy'}" Width="1.5*"/>
+                <DataGridTextColumn Header="المورد" Binding="{Binding SupplierName}" Width="2.5*"/>
+                <DataGridTextColumn Header="الإجمالي" Binding="{Binding TotalAmountFormatted}" Width="1.5*"/>
+                <DataGridTextColumn Header="الحالة" Binding="{Binding Status, Converter={StaticResource EnumToDescriptionConverter}}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

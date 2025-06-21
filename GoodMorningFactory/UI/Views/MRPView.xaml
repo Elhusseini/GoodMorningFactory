@@ -1,0 +1,76 @@
+﻿<UserControl x:Class="GoodMorningFactory.UI.Views.MRPView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
+             xmlns:local="clr-namespace:GoodMorningFactory.UI.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1000"
+             FlowDirection="RightToLeft"
+             Background="WhiteSmoke">
+
+    <UserControl.DataContext>
+        <vm:MRPViewModel/>
+    </UserControl.DataContext>
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <local:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <TextBlock Text="تخطيط متطلبات المواد (MRP)" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Button Content="🚀 تشغيل الحساب الآن" Margin="20,0,0,0" Command="{Binding RunMrpCommand}" Style="{DynamicResource PrimaryButtonStyle}"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" TextWrapping="Wrap" Margin="0,0,0,10">
+            تقوم هذه الشاشة بحساب إجمالي احتياجاتك من المواد الخام بناءً على أوامر البيع المفتوحة للمنتجات النهائية. 
+            تقارن هذه الاحتياجات بالمخزون الحالي والكميات المطلوبة في أوامر الشراء المفتوحة، ثم تقترح عليك الكميات التي يجب شراؤها.
+        </TextBlock>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding MrpResults}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="كود المادة" Binding="{Binding ProductCode}" Width="*"/>
+                <DataGridTextColumn Header="اسم المادة الخام" Binding="{Binding ProductName}" Width="2*"/>
+                <DataGridTextColumn Header="إجمالي المطلوب" Binding="{Binding GrossRequirements, StringFormat=N2}" Width="*" FontWeight="Bold"/>
+                <DataGridTextColumn Header="المخزون الحالي" Binding="{Binding OnHandInventory}" Width="*"/>
+                <DataGridTextColumn Header="مطلوب شراؤه" Binding="{Binding ScheduledReceipts}" Width="*"/>
+                <DataGridTemplateColumn Header="صافي الاحتياج (للشراء)" Width="*" SortMemberPath="NetRequirements">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding NetRequirements, StringFormat=N2}" 
+                                       Background="LightGoldenrodYellow" 
+                                       FontWeight="Bold" 
+                                       Padding="4"
+                                       HorizontalAlignment="Stretch"
+                                       VerticalAlignment="Stretch"
+                                       TextAlignment="Right"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="إجراء" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="إنشاء طلب شراء" 
+                                    Command="{Binding DataContext.CreateRequisitionCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
+                                    CommandParameter="{Binding}"
+                                    IsEnabled="{Binding CanCreateRequisition}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="0" Grid.RowSpan="3" Background="#80FFFFFF" Visibility="{Binding IsProcessing, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <ProgressBar IsIndeterminate="True" Width="250" Height="25" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
+</UserControl>

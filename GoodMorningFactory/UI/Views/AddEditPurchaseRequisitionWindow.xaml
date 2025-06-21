@@ -1,12 +1,9 @@
-﻿<!-- UI/Views/AddEditPurchaseRequisitionWindow.xaml -->
-<!-- نافذة إضافة وتعديل طلب شراء -->
-<Window x:Class="GoodMorningFactory.UI.Views.AddEditPurchaseRequisitionWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditPurchaseRequisitionWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        mc:Ignorable="d" Title="إنشاء طلب شراء جديد" Height="600" Width="800"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+        Title="{Binding Title}" Height="600" Width="800"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft"
+        x:Name="AddRequisitionWindow">
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -14,35 +11,70 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <GroupBox Header="معلومات الطلب" Grid.Row="0">
+        <GroupBox Header="معلومات الطلب" Grid.Row="0" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                    <RowDefinition/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-
                 <Label Grid.Row="0" Grid.Column="0" Content="مقدم الطلب:"/>
-                <TextBox x:Name="RequesterTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+                <ComboBox Grid.Row="0" Grid.Column="1" Margin="5" ItemsSource="{Binding AllUsers}" SelectedValue="{Binding SelectedRequesterName}" DisplayMemberPath="Username" SelectedValuePath="Username"/>
                 <Label Grid.Row="1" Grid.Column="0" Content="القسم:"/>
-                <TextBox x:Name="DepartmentTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                <ComboBox Grid.Row="1" Grid.Column="1" Margin="5" ItemsSource="{Binding AllDepartments}" SelectedValue="{Binding SelectedDepartmentName}" DisplayMemberPath="Name" SelectedValuePath="Name"/>
                 <Label Grid.Row="2" Grid.Column="0" Content="الغرض من الشراء:"/>
-                <TextBox x:Name="PurposeTextBox" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding Purpose}"/>
             </Grid>
         </GroupBox>
 
-        <DataGrid x:Name="ItemsDataGrid" Grid.Row="1" Margin="0,10,0,0" CanUserAddRows="True" AutoGenerateColumns="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="الوصف" Binding="{Binding Description}" Width="3*"/>
-                <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity}" Width="*"/>
-                <DataGridTextColumn Header="وحدة القياس" Binding="{Binding UnitOfMeasure}" Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <GroupBox Header="البنود المطلوبة" Grid.Row="1">
+            <DataGrid ItemsSource="{Binding Items}" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="المنتج/المادة الخام" Width="2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Product.Name}" VerticalAlignment="Center" Margin="4,0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <ComboBox ItemsSource="{Binding DataContext.AllProducts, ElementName=AddRequisitionWindow}" 
+                                          SelectedValue="{Binding ProductId, UpdateSourceTrigger=PropertyChanged}"
+                                          DisplayMemberPath="Name" 
+                                          SelectedValuePath="Id"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
 
-        <Button Grid.Row="2" Content="💾 حفظ الطلب" HorizontalAlignment="Left" Padding="15,5" Margin="5" Click="SaveButton_Click"/>
+                    <DataGridTextColumn Header="وصف إضافي" Binding="{Binding Description}" Width="3*"/>
+                    <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+
+                    <DataGridTemplateColumn Header="وحدة القياس" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding UnitOfMeasure}" VerticalAlignment="Center" Margin="4,0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <ComboBox ItemsSource="{Binding DataContext.AllUnitsOfMeasure, ElementName=AddRequisitionWindow}"
+                                          SelectedValue="{Binding UnitOfMeasure, UpdateSourceTrigger=PropertyChanged}"
+                                          DisplayMemberPath="Name"
+                                          SelectedValuePath="Name"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0">
+            <Button Content="حفظ الطلب" Command="{Binding SaveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+            <Button Content="إلغاء" IsCancel="True" Margin="10,0,0,0"/>
+        </StackPanel>
     </Grid>
 </Window>

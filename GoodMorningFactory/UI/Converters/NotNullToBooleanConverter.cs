@@ -1,0 +1,21 @@
+﻿// GoodMorningFactory/UI/Converters/NotNullToBooleanConverter.cs
+// *** ملف جديد: محول لتحويل كائن إلى قيمة منطقية (true إذا لم يكن null) ***
+using System;
+using System.Globalization;
+using System.Windows.Data;
+
+namespace GoodMorningFactory.UI.Converters
+{
+    public class NotNullToBooleanConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value != null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

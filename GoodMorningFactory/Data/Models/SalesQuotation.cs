@@ -1,15 +1,35 @@
-﻿// Data/Models/SalesQuotation.cs
-// *** تحديث: تمت إضافة حالة جديدة لعرض السعر ***
+﻿// GoodMorningFactory/Data/Models/SalesQuotation.cs
+// *** تحديث: تمت إضافة الوصف العربي للحالات (enum) ***
 using System;
 using System.Collections.Generic;
+using System.ComponentModel; // <-- إضافة مهمة لاستخدام [Description]
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GoodMorningFactory.Data.Models
 {
-    // *** بداية التحديث ***
-    public enum QuotationStatus { Draft, Sent, Accepted, Rejected, Expired, Closed }
-    // *** نهاية التحديث ***
+    // --- بداية التعديل: إضافة الوصف العربي ---
+    public enum QuotationStatus
+    {
+        [Description("مسودة")]
+        Draft,
+
+        [Description("تم الإرسال")]
+        Sent,
+
+        [Description("مقبول")]
+        Accepted,
+
+        [Description("مرفوض")]
+        Rejected,
+
+        [Description("منتهي الصلاحية")]
+        Expired,
+
+        [Description("مغلق")]
+        Closed
+    }
+    // --- نهاية التعديل ---
 
     public class SalesQuotation
     {
@@ -36,7 +56,13 @@ namespace GoodMorningFactory.Data.Models
         public virtual Customer Customer { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal TotalAmount { get; set; }
+        public decimal Subtotal { get; set; } // الإجمالي قبل الضريبة
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal TaxAmount { get; set; } // مبلغ الضريبة
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal TotalAmount { get; set; } // الإجمالي النهائي بعد الضريبة
 
         [Required]
         public QuotationStatus Status { get; set; }

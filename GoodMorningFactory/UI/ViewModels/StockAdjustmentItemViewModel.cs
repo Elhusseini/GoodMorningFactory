@@ -1,5 +1,6 @@
-﻿// UI/ViewModels/StockAdjustmentItemViewModel.cs
-// *** ملف جديد: ViewModel خاص بعرض بنود تعديل المخزون ***
+﻿// GoodMorningFactory/UI/ViewModels/StockAdjustmentItemViewModel.cs
+// *** الكود الكامل والمعدل - تمت إضافة كود المنتج ***
+using GoodMorningFactory.Core.Services;
 using System.ComponentModel;
 
 namespace GoodMorningFactory.UI.ViewModels
@@ -7,11 +8,14 @@ namespace GoodMorningFactory.UI.ViewModels
     public class StockAdjustmentItemViewModel : INotifyPropertyChanged
     {
         public int ProductId { get; set; }
+
+        public string ProductCode { get; set; }
+
         public string ProductName { get; set; }
-        public int SystemQuantity { get; set; } // الكمية المسجلة في النظام
+        public int SystemQuantity { get; set; }
 
         private int _actualQuantity;
-        public int ActualQuantity // الكمية الفعلية التي يدخلها المستخدم
+        public int ActualQuantity
         {
             get => _actualQuantity;
             set
@@ -20,12 +24,18 @@ namespace GoodMorningFactory.UI.ViewModels
                 {
                     _actualQuantity = value;
                     OnPropertyChanged(nameof(ActualQuantity));
-                    OnPropertyChanged(nameof(Difference)); // تحديث الفرق تلقائياً
+                    OnPropertyChanged(nameof(Difference));
+                    OnPropertyChanged(nameof(DifferenceValue));
+                    OnPropertyChanged(nameof(DifferenceValueFormatted));
                 }
             }
         }
 
-        public int Difference => ActualQuantity - SystemQuantity; // الفرق بين الفعلي والمسجل
+        public int Difference => ActualQuantity - SystemQuantity;
+        public decimal UnitCost { get; set; }
+        public decimal DifferenceValue => Difference * UnitCost;
+        public string UnitCostFormatted => $"{UnitCost:N2} {AppSettings.DefaultCurrencySymbol}";
+        public string DifferenceValueFormatted => $"{DifferenceValue:N2} {AppSettings.DefaultCurrencySymbol}";
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName)

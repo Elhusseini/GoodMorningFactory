@@ -1,0 +1,125 @@
+﻿<UserControl x:Class="GoodMorningFactory.UI.Views.CrmView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:viewmodels="clr-namespace:GoodMorningFactory.UI.ViewModels"
+             xmlns:converters="clr-namespace:GoodMorningFactory.UI.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1000"
+             FlowDirection="RightToLeft" Background="WhiteSmoke">
+    <UserControl.DataContext>
+        <viewmodels:CrmViewModel/>
+    </UserControl.DataContext>
+    <UserControl.Resources>
+        <converters:EnumToDescriptionConverter x:Key="EnumToDescriptionConverter"/>
+    </UserControl.Resources>
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="إدارة علاقات العملاء (CRM)" FontSize="24" FontWeight="Bold" Margin="0,0,0,15"/>
+
+        <TabControl Grid.Row="1">
+            <TabItem Header="العملاء المحتملون (Leads)">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Button Content="➕ إضافة عميل محتمل جديد" Margin="5" HorizontalAlignment="Left" Command="{Binding AddLeadCommand}"/>
+
+                    <DataGrid Grid.Row="1" Margin="0,10,0,0" AutoGenerateColumns="False" IsReadOnly="True" ItemsSource="{Binding Leads}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="اسم الشركة" Binding="{Binding CompanyName}" Width="2*"/>
+                            <DataGridTextColumn Header="شخص الاتصال" Binding="{Binding ContactPerson}" Width="*"/>
+                            <DataGridTextColumn Header="البريد الإلكتروني" Binding="{Binding Email}" Width="*"/>
+                            <DataGridTextColumn Header="الهاتف" Binding="{Binding PhoneNumber}" Width="*"/>
+                            <DataGridTemplateColumn Header="الحالة" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Status, Converter={StaticResource EnumToDescriptionConverter}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="المسؤول" Binding="{Binding AssignedToUser.Username}" Width="*"/>
+                            <DataGridTemplateColumn Header="إجراءات" Width="Auto">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="تحويل إلى عميل" Command="{Binding DataContext.ConvertLeadCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="الفرص البيعية (Opportunities)">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Button Content="➕ إضافة فرصة بيعية جديدة" Margin="5" HorizontalAlignment="Left" Command="{Binding AddOpportunityCommand}"/>
+
+                    <DataGrid Grid.Row="1" Margin="0,10,0,0" AutoGenerateColumns="False" IsReadOnly="True" ItemsSource="{Binding Opportunities}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="اسم الفرصة" Binding="{Binding Name}" Width="2*"/>
+                            <DataGridTextColumn Header="العميل" Binding="{Binding Customer.CustomerName}" Width="*"/>
+                            <DataGridTextColumn Header="القيمة التقديرية" Binding="{Binding EstimatedValue, StringFormat={}{0:N2}}" Width="*"/>
+                            <DataGridTextColumn Header="تاريخ الإغلاق" Binding="{Binding CloseDate, StringFormat='dd/MM/yyyy'}" Width="*"/>
+                            <DataGridTemplateColumn Header="المرحلة" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Stage, Converter={StaticResource EnumToDescriptionConverter}}"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="المسؤول" Binding="{Binding AssignedToUser.Username}" Width="*"/>
+
+                            <DataGridTemplateColumn Header="إجراءات" Width="Auto" MinWidth="220">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Content="إنشاء عرض سعر" 
+                                                    Command="{Binding DataContext.CreateQuotationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" 
+                                                    CommandParameter="{Binding}"
+                                                    Margin="2"
+                                                    Background="SeaGreen" 
+                                                    Foreground="White">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                        <Style.Triggers>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding Stage}" Value="ClosedWon"/>
+                                                                    <Condition Binding="{Binding GeneratedQuotationId}" Value="{x:Null}"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="IsEnabled" Value="True"/>
+                                                            </MultiDataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+
+                                            <Button Content="تعديل" Command="{Binding DataContext.EditOpportunityCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Margin="2"/>
+                                            <Button Content="حذف" Command="{Binding DataContext.DeleteOpportunityCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Margin="2" Background="IndianRed" Foreground="White"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

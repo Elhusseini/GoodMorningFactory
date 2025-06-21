@@ -1,0 +1,56 @@
+﻿<Window x:Class="GoodMorningFactory.UI.Views.CreateInvoiceFromOrderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GoodMorningFactory.UI.Views"
+        xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
+        mc:Ignorable="d"
+        Title="إنشاء فاتورة من أمر بيع" Height="500" Width="800"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft"
+        d:DataContext="{d:DesignInstance Type=vm:CreateInvoiceFromOrderViewModel, IsDesignTimeCreatable=True}">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="إنشاء فاتورة" FontSize="20" FontWeight="Bold" Grid.Row="0"/>
+
+        <Grid Grid.Row="1" Margin="0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Margin="5">
+                <Label Content="من أمر البيع رقم:"/>
+                <TextBox Text="{Binding SalesOrderNumber}" IsReadOnly="True"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="5">
+                <Label Content="تاريخ الفاتورة:"/>
+                <DatePicker SelectedDate="{Binding InvoiceDate}"/>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Margin="5">
+                <Label Content="تاريخ الاستحقاق:"/>
+                <DatePicker SelectedDate="{Binding DueDate}"/>
+            </StackPanel>
+        </Grid>
+
+        <DataGrid ItemsSource="{Binding ItemsToInvoice}" Grid.Row="2" AutoGenerateColumns="False" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="المنتج" Binding="{Binding ProductName}" IsReadOnly="True" Width="2*"/>
+                <DataGridTextColumn Header="الكمية المطلوبة" Binding="{Binding OrderedQuantity}" IsReadOnly="True" Width="*"/>
+                <DataGridTextColumn Header="تمت فوترته" Binding="{Binding InvoicedQuantity}" IsReadOnly="True" Width="*"/>
+                <DataGridTextColumn Header="الكمية للفوترة" Binding="{Binding QuantityToInvoice, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="إنشاء الفاتورة" Command="{Binding CreateInvoiceCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+            <Button Content="إلغاء" Margin="10,0,0,0" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

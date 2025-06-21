@@ -1,5 +1,5 @@
 ﻿// Data/Models/Employee.cs
-// *** ملف جديد: يمثل جدول الموظفين الرئيسي مع جميع الحقول ***
+// *** تحديث: تمت إضافة حقل لتتبع رصيد الإجازات ***
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -19,12 +19,17 @@ namespace GoodMorningFactory.Data.Models
         [MaxLength(50)]
         public string EmployeeCode { get; set; }
         public DateTime HireDate { get; set; }
-        public DateTime? TerminationDate { get; set; } // تاريخ إنهاء الخدمة
+        public DateTime? TerminationDate { get; set; }
         [MaxLength(100)]
         public string? JobTitle { get; set; }
         [MaxLength(100)]
         public string? Department { get; set; }
         public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
+
+        // --- بداية التحديث ---
+        [Column(TypeName = "decimal(5, 2)")]
+        public decimal AnnualLeaveBalance { get; set; } // رصيد الإجازة السنوية
+        // --- نهاية التحديث ---
 
         // --- معلومات شخصية ---
         [Required]

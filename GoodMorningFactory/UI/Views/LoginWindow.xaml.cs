@@ -1,10 +1,5 @@
-﻿// UI/Views/LoginWindow.xaml.cs
-// *** تحديث: تم إصلاح منطق التحقق من الدخول ***
-using GoodMorningFactory.Core.Helpers;
-using GoodMorningFactory.Core.Services;
-using GoodMorningFactory.Data;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
+﻿using GoodMorningFactory.Core.Services;
+using GoodMorningFactory.UI.ViewModels;
 using System.Windows;
 
 namespace GoodMorningFactory.UI.Views
@@ -14,44 +9,22 @@ namespace GoodMorningFactory.UI.Views
         public LoginWindow()
         {
             InitializeComponent();
-        }
 
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(UsernameTextBox.Text) || string.IsNullOrWhiteSpace(PasswordBox.Password))
+            // 1. إنشاء خدمة المصادقة
+            var authService = new AuthenticationService();
+
+            // 2. إنشاء الـ ViewModel وتمرير الخدمة إليه
+            var viewModel = new LoginViewModel(authService);
+
+            // 3. الاشتراك في حدث نجاح تسجيل الدخول
+            viewModel.LoginSuccess += () =>
             {
-                MessageBox.Show("يرجى إدخال اسم المستخدم وكلمة المرور.", "بيانات ناقصة", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+                // عند نجاح الدخول، أغلق النافذة بنتيجة إيجابية
+                this.DialogResult = true;
+            };
 
-            using (var db = new DatabaseContext())
-            {
-                var userFromDb = db.Users.FirstOrDefault(u => u.Username.ToLower() == UsernameTextBox.Text.ToLower());
-
-                if (userFromDb == null)
-                {
-                    MessageBox.Show("اسم المستخدم أو كلمة المرور غير صحيحة.", "فشل الدخول", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                if (!userFromDb.IsActive)
-                {
-                    MessageBox.Show("هذا الحساب غير نشط. يرجى مراجعة المسؤول.", "فشل الدخول", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                if (PasswordHelper.VerifyPassword(PasswordBox.Password, userFromDb.PasswordHash))
-                {
-                    // *** بداية التصحيح: إعادة تحميل المستخدم مع دوره بشكل كامل ***
-                    CurrentUserService.LoggedInUser = db.Users.Include(u => u.Role).SingleOrDefault(u => u.Id == userFromDb.Id);
-                    // *** نهاية التصحيح ***
-                    this.DialogResult = true;
-                }
-                else
-                {
-                    MessageBox.Show("اسم المستخدم أو كلمة المرور غير صحيحة.", "فشل الدخول", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
+            // 4. تعيين الـ ViewModel كـ DataContext للواجهة
+            this.DataContext = viewModel;
         }
     }
 }

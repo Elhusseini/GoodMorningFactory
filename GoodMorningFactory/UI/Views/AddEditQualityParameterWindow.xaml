@@ -1,0 +1,39 @@
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditQualityParameterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
+        mc:Ignorable="d"
+        Title="{Binding WindowTitle}" Height="400" Width="500"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft"
+        d:DataContext="{d:DesignInstance Type=vm:AddEditQualityParameterViewModel, IsDesignTimeCreatable=True}">
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="اسم المعيار:" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding Parameter.Name, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <Label Grid.Row="1" Grid.Column="0" Content="الوصف:" VerticalAlignment="Top" Margin="0,5,0,0"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding Parameter.Description, UpdateSourceTrigger=PropertyChanged}" 
+                 TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Height="80"/>
+
+        <Label Grid.Row="2" Grid.Column="0" Content="القيمة المتوقعة:" VerticalAlignment="Center"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="5" Text="{Binding Parameter.ExpectedValue, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <Label Grid.Row="3" Grid.Column="0" Content="نوع المعيار:" VerticalAlignment="Center"/>
+        <ComboBox Grid.Row="3" Grid.Column="1" Margin="5" ItemsSource="{Binding ParameterTypes}" SelectedItem="{Binding Parameter.Type}"/>
+
+        <Button Content="💾 حفظ" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" Width="120" Margin="5" Padding="10,5" Click="SaveButton_Click"/>
+    </Grid>
+</Window>

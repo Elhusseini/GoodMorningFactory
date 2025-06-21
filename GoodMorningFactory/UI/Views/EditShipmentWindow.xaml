@@ -1,11 +1,11 @@
-﻿<!-- UI/Views/EditShipmentWindow.xaml -->
-<!-- *** ملف جديد: نافذة تعديل بيانات الشحنة *** -->
-<Window x:Class="GoodMorningFactory.UI.Views.EditShipmentWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.EditShipmentWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:EditShipmentViewModel, IsDesignTimeCreatable=True}"
         Title="تعديل بيانات الشحنة" Height="250" Width="450"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize" FlowDirection="RightToLeft">
     <Grid Margin="15">
@@ -16,15 +16,18 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Content="شركة الشحن:" VerticalAlignment="Center"/>
-        <TextBox x:Name="CarrierTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+        <TextBox Grid.Row="0" Grid.Column="1" Margin="5" Text="{Binding Carrier, UpdateSourceTrigger=PropertyChanged}"/>
 
         <Label Grid.Row="1" Grid.Column="0" Content="رقم التتبع:" VerticalAlignment="Center"/>
-        <TextBox x:Name="TrackingNumberTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Margin="5" Text="{Binding TrackingNumber, UpdateSourceTrigger=PropertyChanged}"/>
 
-        <Button Grid.Row="2" Grid.Column="1" Content="💾 حفظ التعديلات" Margin="5" Padding="10,5" HorizontalAlignment="Left" Click="SaveButton_Click"/>
+        <Button Grid.Row="3" Grid.Column="1" Content="💾 حفظ التعديلات" Margin="5" Padding="10,5" HorizontalAlignment="Left" 
+                Command="{Binding SaveCommand}"
+                CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
     </Grid>
 </Window>

@@ -1,5 +1,5 @@
 ﻿<!-- App.xaml -->
-<!-- *** تحديث: تم ربط ملفات السمات بالبرنامج *** -->
+<!-- *** الكود الكامل والمؤكد *** -->
 <Application x:Class="GoodMorningFactory.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,9 +7,13 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+				<!-- هذا السطر يقوم بتحميل الأنماط الخاصة بالثيم (Theme) -->
                 <ResourceDictionary Source="/UI/Styles/LightTheme.xaml"/>
+				<!-- هذا السطر يقوم بتحميل جميع المحولات والأنماط المشتركة -->
+                <ResourceDictionary Source="/UI/Resources/SharedResources.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
+			<!-- الأنماط الخاصة بلوحة المعلومات (Dashboard) تبقى كما هي -->
             <Style x:Key="DashboardCardStyle" TargetType="Border">
                 <Setter Property="CornerRadius" Value="10"/>
                 <Setter Property="Margin" Value="10"/>

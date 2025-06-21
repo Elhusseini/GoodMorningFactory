@@ -1,50 +1,80 @@
-﻿<!-- UI/Views/AddEditPurchaseOrderWindow.xaml -->
-<!-- الكود الكامل لتصميم نافذة إضافة وتعديل أمر الشراء -->
-<Window x:Class="GoodMorningFactory.UI.Views.AddEditPurchaseOrderWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditPurchaseOrderWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        mc:Ignorable="d" Title="إنشاء / تعديل أمر شراء" Height="600" Width="900"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+        xmlns:vm="clr-namespace:GoodMorningFactory.UI.ViewModels"
+        mc:Ignorable="d"
+        Title="{Binding Title}" Height="600" Width="900"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft"
+        x:Name="AddPOWindow">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <GroupBox Header="معلومات أمر الشراء" Grid.Row="0">
-            <Grid>
+        <GroupBox Header="معلومات أمر الشراء" Grid.Row="0" Margin="0,0,0,10">
+            <Grid Margin="10,5,10,5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="2*"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
-                <Label Grid.Column="0" Content="المورد:"/>
-                <ComboBox x:Name="SupplierComboBox" Grid.Column="1" Margin="5" DisplayMemberPath="Name" SelectedValuePath="Id"/>
-                <Label Grid.Column="2" Content="تاريخ الأمر:"/>
-                <DatePicker x:Name="OrderDatePicker" Grid.Column="3" Margin="5"/>
 
-                <!-- *** بداية التحديث *** -->
-                <Label Grid.Row="1" Grid.Column="0" Content="مرجع طلب الشراء:" Visibility="{Binding ElementName=RequisitionRefTextBlock, Path=Visibility}"/>
-                <TextBlock x:Name="RequisitionRefTextBlock" Grid.Row="1" Grid.Column="1" FontWeight="Bold" VerticalAlignment="Center" Margin="5" Visibility="Collapsed"/>
-                <!-- *** نهاية التحديث *** -->
+                <Label Grid.Row="0" Grid.Column="0" Content="المورد:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox Grid.Row="0" Grid.Column="1" Margin="0,2,10,2" 
+                          ItemsSource="{Binding Suppliers}"
+                          SelectedItem="{Binding SelectedSupplier}"
+                          DisplayMemberPath="Name" />
 
+                <Label Grid.Row="0" Grid.Column="2" Content="تاريخ الأمر:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <DatePicker Grid.Row="0" Grid.Column="3" Margin="0,2,0,2" SelectedDate="{Binding OrderDate}"/>
+
+                <Label Grid.Row="1" Grid.Column="0" Content="تاريخ الاستلام المتوقع:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <DatePicker Grid.Row="1" Grid.Column="1" Margin="0,2,10,2" SelectedDate="{Binding ExpectedDeliveryDate}"/>
             </Grid>
         </GroupBox>
 
-        <DataGrid x:Name="OrderItemsDataGrid" Grid.Row="1" Margin="0,10" CanUserAddRows="True" AutoGenerateColumns="False">
+        <DataGrid ItemsSource="{Binding Items}" Grid.Row="1" Margin="0,0,0,10" AutoGenerateColumns="False" CanUserAddRows="False">
             <DataGrid.Columns>
-                <DataGridComboBoxColumn x:Name="ProductColumn" Header="المنتج/المادة الخام" SelectedValueBinding="{Binding ProductId}" SelectedValuePath="Id" DisplayMemberPath="Name" Width="3*"/>
-                <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity}" Width="*"/>
-                <DataGridTextColumn Header="سعر الوحدة" Binding="{Binding UnitPrice, StringFormat=N2}" Width="*"/>
-                <DataGridTextColumn Header="الوصف" Binding="{Binding Description}" IsReadOnly="True" Width="2*" Foreground="Gray"/>
-
+                <DataGridTemplateColumn Header="المنتج/المادة الخام" Width="3*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding DataContext.Products, ElementName=AddPOWindow}"
+                                      SelectedValue="{Binding ProductId, UpdateSourceTrigger=PropertyChanged}" 
+                                      SelectedValuePath="Id" 
+                                      DisplayMemberPath="Name"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                <DataGridTextColumn Header="سعر الوحدة" Binding="{Binding UnitPrice, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                <DataGridTextColumn Header="الإجمالي" Binding="{Binding Subtotal, StringFormat=N2}" IsReadOnly="True" Width="1.5*"/>
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="❌" Command="{Binding DataContext.RemoveItemCommand, ElementName=AddPOWindow}" CommandParameter="{Binding}" Background="Transparent" BorderThickness="0" Foreground="Red"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 
-        <Button Grid.Row="2" Content="💾 حفظ" HorizontalAlignment="Left" Padding="15,5" Click="SaveButton_Click"/>
+        <Button Grid.Row="2" Content="➕ إضافة بند جديد" Command="{Binding AddItemCommand}" HorizontalAlignment="Right" Margin="0,0,0,10"/>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+            <TextBlock Text="الإجمالي:" FontSize="16" FontWeight="Bold"/>
+            <TextBlock Text="{Binding TotalAmountText}" FontSize="16" FontWeight="Bold" Foreground="DarkBlue" Margin="10,0"/>
+        </StackPanel>
+
+        <Button Grid.Row="3" Content="💾 حفظ أمر الشراء" Command="{Binding SaveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" HorizontalAlignment="Left" Padding="15,5"/>
     </Grid>
 </Window>
