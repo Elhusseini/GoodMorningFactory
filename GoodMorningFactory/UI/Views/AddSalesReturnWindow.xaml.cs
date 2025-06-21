@@ -1,5 +1,6 @@
 ﻿// UI/Views/AddSalesReturnWindow.xaml.cs
-// *** الكود الكامل لملف الكود الخلفي لنافذة إنشاء مرتجع مع الإصلاح ***
+// *** تحديث: إضافة منطق تسجيل حركة "مرتجع مبيعات" في السجل المركزي ***
+using GoodMorningFactory.Core.Services;
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -75,6 +76,13 @@ namespace GoodMorningFactory.UI.Views
             {
                 try
                 {
+                    // نفترض وجود موقع افتراضي للمرتجعات
+                    var defaultLocation = db.StorageLocations.FirstOrDefault();
+                    if (defaultLocation == null)
+                    {
+                        throw new Exception("لا يوجد موقع تخزين افتراضي معرف في النظام لاستلام المرتجعات.");
+                    }
+
                     var salesReturn = new SalesReturn
                     {
                         ReturnNumber = $"RTN-{DateTime.Now:yyyyMMddHHmmss}",
@@ -98,9 +106,24 @@ namespace GoodMorningFactory.UI.Views
                             salesReturn.SalesReturnItems.Add(new SalesReturnItem { ProductId = item.ProductId, Quantity = item.QuantityToReturn });
                             totalReturnValue += item.QuantityToReturn * item.UnitPrice;
 
-                            var inventory = db.Inventories.FirstOrDefault(i => i.ProductId == item.ProductId);
+                            var inventory = db.Inventories.FirstOrDefault(i => i.ProductId == item.ProductId && i.StorageLocationId == defaultLocation.Id);
                             if (inventory != null) { inventory.Quantity += item.QuantityToReturn; }
-                            else { db.Inventories.Add(new Inventory { ProductId = item.ProductId, Quantity = item.QuantityToReturn }); }
+                            else { db.Inventories.Add(new Inventory { ProductId = item.ProductId, StorageLocationId = defaultLocation.Id, Quantity = item.QuantityToReturn }); }
+
+                            // --- بداية الإضافة: تسجيل حركة مرتجع المبيعات ---
+                            var product = db.Products.Find(item.ProductId);
+                            db.StockMovements.Add(new StockMovement
+                            {
+                                ProductId = item.ProductId,
+                                StorageLocationId = defaultLocation.Id,
+                                MovementDate = salesReturn.ReturnDate,
+                                MovementType = StockMovementType.SalesReturn,
+                                Quantity = item.QuantityToReturn,
+                                UnitCost = product.AverageCost,
+                                ReferenceDocument = salesReturn.ReturnNumber,
+                                UserId = CurrentUserService.LoggedInUser?.Id
+                            });
+                            // --- نهاية الإضافة ---
                         }
                     }
 
@@ -109,23 +132,44 @@ namespace GoodMorningFactory.UI.Views
                     salesReturn.TotalReturnValue = totalReturnValue;
                     db.SalesReturns.Add(salesReturn);
 
-                    // *** بداية الإصلاح: تعديل رصيد الفاتورة الأصلية ***
-                    var originalSale = db.Sales.Find(_saleId);
+                    var originalSale = db.Sales.Include(s => s.Customer).FirstOrDefault(s => s.Id == _saleId);
                     if (originalSale != null)
                     {
-                        // خصم قيمة المرتجع من إجمالي الفاتورة
                         originalSale.TotalAmount -= totalReturnValue;
-                        // إذا كان المبلغ المدفوع أكبر من الإجمالي الجديد، يتم تعديله ليكون مساوياً للإجمالي
                         if (originalSale.AmountPaid > originalSale.TotalAmount)
                         {
                             originalSale.AmountPaid = originalSale.TotalAmount;
                         }
+                        UpdateInvoiceStatus(originalSale);
                     }
-                    // *** نهاية الإصلاح ***
+
+                    var companyInfo = db.CompanyInfos.FirstOrDefault();
+                    var salesAccount = db.Accounts.Find(companyInfo?.DefaultSalesAccountId);
+                    var arAccount = db.Accounts.Find(companyInfo?.DefaultAccountsReceivableAccountId);
+
+                    if (salesAccount == null || arAccount == null)
+                    {
+                        throw new Exception("لا يمكن إنشاء القيد المحاسبي. يرجى التأكد من وجود حساب افتراضي للمبيعات وحساب للذمم المدينة في الإعدادات.");
+                    }
+
+                    var creditNoteVoucher = new JournalVoucher
+                    {
+                        VoucherNumber = $"CN-{salesReturn.ReturnNumber}",
+                        VoucherDate = DateTime.Today,
+                        Description = $"إشعار دائن لمرتجع من الفاتورة رقم {originalSale.InvoiceNumber}",
+                        TotalDebit = totalReturnValue,
+                        TotalCredit = totalReturnValue,
+                        Status = VoucherStatus.Posted
+                    };
+
+                    creditNoteVoucher.JournalVoucherItems.Add(new JournalVoucherItem { AccountId = salesAccount.Id, Debit = totalReturnValue, Credit = 0 });
+                    creditNoteVoucher.JournalVoucherItems.Add(new JournalVoucherItem { AccountId = arAccount.Id, Debit = 0, Credit = totalReturnValue });
+
+                    db.JournalVouchers.Add(creditNoteVoucher);
 
                     db.SaveChanges();
                     transaction.Commit();
-                    MessageBox.Show("تم تسجيل المرتجع بنجاح.", "نجاح");
+                    MessageBox.Show("تم تسجيل المرتجع والإشعار الدائن بنجاح.", "نجاح");
                     this.DialogResult = true;
                 }
                 catch (Exception ex)
@@ -133,6 +177,18 @@ namespace GoodMorningFactory.UI.Views
                     transaction.Rollback();
                     MessageBox.Show($"فشلت العملية: {ex.Message}", "خطأ");
                 }
+            }
+        }
+
+        private void UpdateInvoiceStatus(Sale sale)
+        {
+            if (sale.AmountPaid >= sale.TotalAmount)
+            {
+                sale.Status = InvoiceStatus.Paid;
+            }
+            else if (sale.AmountPaid > 0)
+            {
+                sale.Status = InvoiceStatus.PartiallyPaid;
             }
         }
     }

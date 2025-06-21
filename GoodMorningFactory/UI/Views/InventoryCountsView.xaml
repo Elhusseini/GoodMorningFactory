@@ -1,0 +1,115 @@
+﻿<UserControl x:Class="GoodMorningFactory.UI.Views.InventoryCountsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GoodMorningFactory.UI.Views"
+             xmlns:converters="clr-namespace:GoodMorningFactory.UI.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800" FlowDirection="RightToLeft">
+
+    <!-- بداية الإصلاح: إضافة تعريفات الأنماط المفقودة -->
+    <UserControl.Resources>
+        <converters:EnumToDescriptionConverter x:Key="EnumToDescriptionConverter"/>
+
+        <Style x:Key="TitleTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Foreground" Value="#005A9C"/>
+        </Style>
+
+        <Style x:Key="SectionBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F9F9F9"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style x:Key="DataGridStyle" TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="GridLinesVisibility" Value="All"/>
+            <Setter Property="BorderBrush" Value="#D0D0D0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#E0E0E0"/>
+            <Setter Property="VerticalGridLinesBrush" Value="#E0E0E0"/>
+            <Setter Property="RowBackground" Value="White"/>
+            <Setter Property="AlternatingRowBackground" Value="#F9F9F9"/>
+        </Style>
+    </UserControl.Resources>
+    <!-- نهاية الإصلاح -->
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- العنوان -->
+        <TextBlock Text="إدارة أوامر الجرد" Style="{StaticResource TitleTextBlockStyle}" Grid.Row="0"/>
+
+        <!-- شريط الفلاتر والأدوات -->
+        <Border Grid.Row="1" Style="{StaticResource SectionBorderStyle}">
+            <StackPanel Orientation="Vertical">
+                <WrapPanel Margin="5">
+                    <Button x:Name="AddCountButton" Content="أمر جرد جديد" Margin="5" Click="AddCountButton_Click" Style="{StaticResource PrimaryButtonStyle}"/>
+                    <Button Content="تحديث القائمة" Margin="5" Click="RefreshButton_Click"/>
+                </WrapPanel>
+                <Separator/>
+                <WrapPanel Margin="5">
+                    <TextBlock Text="بحث:" VerticalAlignment="Center" Margin="5"/>
+                    <TextBox x:Name="SearchTextBox" Width="200" Margin="5" KeyUp="Filter_KeyUp"/>
+                    <TextBlock Text="الحالة:" VerticalAlignment="Center" Margin="15,5,5,5"/>
+                    <ComboBox x:Name="StatusFilterComboBox" Width="150" Margin="5" SelectionChanged="Filter_Changed">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumToDescriptionConverter}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- جدول عرض أوامر الجرد -->
+        <DataGrid x:Name="CountsDataGrid" Grid.Row="2" Style="{StaticResource DataGridStyle}" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="الرقم المرجعي" Binding="{Binding CountReferenceNumber}" Width="*"/>
+                <DataGridTextColumn Header="تاريخ الجرد" Binding="{Binding CountDate, StringFormat='yyyy/MM/dd'}" Width="*"/>
+                <DataGridTextColumn Header="المخزن" Binding="{Binding WarehouseName}" Width="*"/>
+                <DataGridTextColumn Header="المسؤول" Binding="{Binding ResponsibleUser}" Width="*"/>
+                <DataGridTextColumn Header="الحالة" Binding="{Binding Status, Converter={StaticResource EnumToDescriptionConverter}}" Width="*"/>
+                <DataGridTemplateColumn Header="إجراءات" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="عرض/تعديل" Margin="2" CommandParameter="{Binding}" Click="ViewDetailsButton_Click"/>
+                                <Button Content="إلغاء" Margin="2" CommandParameter="{Binding}" Click="CancelButton_Click"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- شريط ترقيم الصفحات -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5">
+            <Button x:Name="PreviousPageButton" Content="السابق" Margin="5" Click="PreviousPageButton_Click"/>
+            <TextBlock x:Name="PageInfoTextBlock" VerticalAlignment="Center" Margin="10,0"/>
+            <Button x:Name="NextPageButton" Content="التالي" Margin="5" Click="NextPageButton_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

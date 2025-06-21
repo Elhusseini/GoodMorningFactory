@@ -1,5 +1,4 @@
 ﻿// UI/Views/AddEditBillOfMaterialsWindow.xaml.cs
-// *** الكود الكامل لنافذة إضافة وتعديل قائمة المكونات مع الإصلاحات ***
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +16,7 @@ namespace GoodMorningFactory.UI.Views
         public int RawMaterialId { get; set; }
         public string RawMaterialName { get; set; }
         public decimal Quantity { get; set; }
+        public decimal ScrapPercentage { get; set; }
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -27,7 +27,6 @@ namespace GoodMorningFactory.UI.Views
         private int? _sourceBomIdToCopy;
         private ObservableCollection<BillOfMaterialsItemViewModel> _items = new ObservableCollection<BillOfMaterialsItemViewModel>();
 
-        // --- بداية الإصلاح: تعديل المُنشئ ---
         public AddEditBillOfMaterialsWindow(int? bomId = null, int? sourceBomIdToCopy = null)
         {
             InitializeComponent();
@@ -36,7 +35,6 @@ namespace GoodMorningFactory.UI.Views
             BomItemsDataGrid.ItemsSource = _items;
             LoadInitialData();
         }
-        // --- نهاية الإصلاح ---
 
         private void LoadInitialData()
         {
@@ -62,7 +60,8 @@ namespace GoodMorningFactory.UI.Views
                             {
                                 RawMaterialId = item.RawMaterialId,
                                 RawMaterialName = item.RawMaterial.Name,
-                                Quantity = item.Quantity
+                                Quantity = item.Quantity,
+                                ScrapPercentage = item.ScrapPercentage
                             });
                         }
                     }
@@ -84,7 +83,8 @@ namespace GoodMorningFactory.UI.Views
                             {
                                 RawMaterialId = item.RawMaterialId,
                                 RawMaterialName = item.RawMaterial.Name,
-                                Quantity = item.Quantity
+                                Quantity = item.Quantity,
+                                ScrapPercentage = item.ScrapPercentage
                             });
                         }
                     }
@@ -96,9 +96,10 @@ namespace GoodMorningFactory.UI.Views
             }
         }
 
-        private void SearchMaterialTextBox_KeyUp(object sender, KeyEventArgs e)
+        // === بداية الإصلاح: دالة مركزية لإضافة المواد ===
+        private void AddMaterial()
         {
-            if (e.Key != Key.Enter) return;
+            if (string.IsNullOrWhiteSpace(SearchMaterialTextBox.Text)) return;
 
             using (var db = new DatabaseContext())
             {
@@ -108,18 +109,47 @@ namespace GoodMorningFactory.UI.Views
                 {
                     if (!_items.Any(i => i.RawMaterialId == material.Id))
                     {
-                        _items.Add(new BillOfMaterialsItemViewModel { RawMaterialId = material.Id, RawMaterialName = material.Name, Quantity = 1 });
+                        _items.Add(new BillOfMaterialsItemViewModel { RawMaterialId = material.Id, RawMaterialName = material.Name, Quantity = 1, ScrapPercentage = 0 });
+                    }
+                    else
+                    {
+                        // يمكنك إضافة منطق لزيادة الكمية إذا كان البند موجوداً
+                        var existingItem = _items.First(i => i.RawMaterialId == material.Id);
+                        existingItem.Quantity++;
                     }
                     SearchMaterialTextBox.Clear();
                 }
+                else
+                {
+                    MessageBox.Show("لم يتم العثور على المادة الخام.", "بحث", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
         }
+
+        private void SearchMaterialTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                AddMaterial();
+                e.Handled = true; // منع الحدث من تفعيل زر الحفظ
+            }
+        }
+
+        private void AddMaterialButton_Click(object sender, RoutedEventArgs e)
+        {
+            AddMaterial();
+        }
+        // === نهاية الإصلاح ===
 
         private void RemoveItem_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as FrameworkElement)?.DataContext is BillOfMaterialsItemViewModel item)
             {
-                _items.Remove(item);
+                var result = MessageBox.Show($"سيتم حذف المادة: {item.RawMaterialName}. هل تريد المتابعة؟", "تأكيد الحذف", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+                if (result == MessageBoxResult.OK)
+                {
+                    _items.Remove(item);
+                }
             }
         }
 
@@ -150,7 +180,12 @@ namespace GoodMorningFactory.UI.Views
 
                 foreach (var item in _items)
                 {
-                    bom.BillOfMaterialsItems.Add(new BillOfMaterialsItem { RawMaterialId = item.RawMaterialId, Quantity = item.Quantity });
+                    bom.BillOfMaterialsItems.Add(new BillOfMaterialsItem
+                    {
+                        RawMaterialId = item.RawMaterialId,
+                        Quantity = item.Quantity,
+                        ScrapPercentage = item.ScrapPercentage
+                    });
                 }
 
                 db.SaveChanges();

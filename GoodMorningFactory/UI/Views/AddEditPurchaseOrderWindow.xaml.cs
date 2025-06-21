@@ -1,7 +1,5 @@
 ﻿// UI/Views/AddEditPurchaseOrderWindow.xaml.cs
-// *** تحديث: تم إصلاح مشكلة تضارب المُنشئات ودمجها في مُنشئ واحد ***
-// UI/Views/AddEditPurchaseOrderWindow.xaml.cs
-// *** تحديث: تم إصلاح مشكلة تضارب المُنشئات ودمجها في مُنشئ واحد ***
+// *** تحديث: تم إصلاح منطق استدعاء البيانات عند التحويل من طلب شراء ***
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +28,6 @@ namespace GoodMorningFactory.UI.Views
         private readonly int? _sourceRequisitionId;
         private readonly ObservableCollection<PurchaseOrderItemViewModel> _items = new ObservableCollection<PurchaseOrderItemViewModel>();
 
-        // --- بداية الإصلاح: دمج المُنشئات في واحد باستخدام معاملات اختيارية ---
         public AddEditPurchaseOrderWindow(int? poId = null, int? sourceRequisitionId = null)
         {
             InitializeComponent();
@@ -39,24 +36,26 @@ namespace GoodMorningFactory.UI.Views
 
             OrderDatePicker.SelectedDate = DateTime.Today;
             OrderItemsDataGrid.ItemsSource = _items;
+
             LoadInitialData();
         }
-        // --- نهاية الإصلاح ---
 
         private void LoadInitialData()
         {
             using (var db = new DatabaseContext())
             {
-                SupplierComboBox.ItemsSource = db.Suppliers.ToList();
                 ProductColumn.ItemsSource = db.Products.ToList();
+                SupplierComboBox.ItemsSource = db.Suppliers.ToList();
             }
 
-            if (_poId.HasValue) // إذا كنا في وضع التعديل
+            if (_poId.HasValue) // وضع التعديل
             {
                 Title = "تعديل أمر شراء";
                 using (var db = new DatabaseContext())
                 {
-                    var po = db.PurchaseOrders.Include(p => p.PurchaseOrderItems)
+                    var po = db.PurchaseOrders
+                               .Include(p => p.PurchaseOrderItems)
+                               .ThenInclude(i => i.Product)
                                .FirstOrDefault(p => p.Id == _poId.Value);
                     if (po != null)
                     {
@@ -64,40 +63,70 @@ namespace GoodMorningFactory.UI.Views
                         OrderDatePicker.SelectedDate = po.OrderDate;
                         foreach (var item in po.PurchaseOrderItems)
                         {
-                            _items.Add(new PurchaseOrderItemViewModel { ProductId = item.ProductId, Quantity = item.Quantity, UnitPrice = item.UnitPrice });
+                            _items.Add(new PurchaseOrderItemViewModel
+                            {
+                                ProductId = item.ProductId,
+                                Quantity = item.Quantity,
+                                UnitPrice = item.UnitPrice,
+                                Description = item.Product?.Name
+                            });
                         }
                     }
                 }
             }
-            else if (_sourceRequisitionId.HasValue) // إذا كنا نقوم بالتحويل من طلب شراء
+            else if (_sourceRequisitionId.HasValue) // التحويل من طلب شراء
             {
                 Title = "إنشاء أمر شراء من طلب";
                 using (var db = new DatabaseContext())
                 {
-                    var req = db.PurchaseRequisitions.Include(r => r.PurchaseRequisitionItems).FirstOrDefault(r => r.Id == _sourceRequisitionId);
+                    var req = db.PurchaseRequisitions
+                               .Include(r => r.PurchaseRequisitionItems)
+                                   .ThenInclude(i => i.Product)
+                                       .ThenInclude(p => p.DefaultSupplier)
+                               .AsNoTracking()
+                               .FirstOrDefault(r => r.Id == _sourceRequisitionId.Value);
+
                     if (req != null)
                     {
                         RequisitionRefTextBlock.Text = req.RequisitionNumber;
                         RequisitionRefTextBlock.Visibility = Visibility.Visible;
 
-                        foreach (var item in req.PurchaseRequisitionItems)
+                        _items.Clear();
+
+                        foreach (var reqItem in req.PurchaseRequisitionItems)
                         {
-                            _items.Add(new PurchaseOrderItemViewModel { Description = item.Description, Quantity = (int)item.Quantity });
+                            _items.Add(new PurchaseOrderItemViewModel
+                            {
+                                ProductId = reqItem.ProductId,
+                                Description = reqItem.Product?.Name ?? reqItem.Description,
+                                Quantity = (int)reqItem.Quantity,
+                                UnitPrice = reqItem.Product?.PurchasePrice ?? 0
+                            });
+                        }
+
+                        var firstProductWithSupplier = req.PurchaseRequisitionItems
+                            .Select(i => i.Product)
+                            .FirstOrDefault(p => p?.DefaultSupplierId != null);
+
+                        if (firstProductWithSupplier != null)
+                        {
+                            SupplierComboBox.SelectedValue = firstProductWithSupplier.DefaultSupplierId;
                         }
                     }
                 }
             }
-            else // إذا كنا في وضع الإضافة
+            else // إنشاء جديد
             {
                 Title = "إنشاء أمر شراء جديد";
+                _items.Add(new PurchaseOrderItemViewModel());
             }
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            if (SupplierComboBox.SelectedItem == null || !_items.Any(i => i.ProductId.HasValue && i.Quantity > 0 && i.UnitPrice > 0))
+            if (SupplierComboBox.SelectedItem == null || !_items.Any(i => i.ProductId.HasValue && i.Quantity > 0))
             {
-                MessageBox.Show("يرجى اختيار مورد وإكمال بيانات الأصناف (المنتج، الكمية، السعر).", "بيانات ناقصة", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار مورد وإضافة أصناف صالحة.", "بيانات ناقصة", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -123,18 +152,23 @@ namespace GoodMorningFactory.UI.Views
                     po.Status = PurchaseOrderStatus.Sent;
                     po.TotalAmount = _items.Sum(i => i.Quantity * i.UnitPrice);
 
-                    foreach (var item in _items)
+                    foreach (var item in _items.Where(i => i.ProductId.HasValue))
                     {
-                        if (item.ProductId.HasValue)
+                        po.PurchaseOrderItems.Add(new PurchaseOrderItem
                         {
-                            po.PurchaseOrderItems.Add(new PurchaseOrderItem { ProductId = item.ProductId.Value, Quantity = item.Quantity, UnitPrice = item.UnitPrice });
-                        }
+                            ProductId = item.ProductId.Value,
+                            Quantity = item.Quantity,
+                            UnitPrice = item.UnitPrice
+                        });
                     }
 
                     if (_sourceRequisitionId.HasValue)
                     {
                         var req = db.PurchaseRequisitions.Find(_sourceRequisitionId.Value);
-                        if (req != null) { req.Status = RequisitionStatus.PO_Created; }
+                        if (req != null)
+                        {
+                            req.Status = RequisitionStatus.PO_Created;
+                        }
                     }
 
                     db.SaveChanges();
@@ -145,7 +179,7 @@ namespace GoodMorningFactory.UI.Views
                 catch (Exception ex)
                 {
                     transaction.Rollback();
-                    MessageBox.Show($"فشل إنشاء أمر الشراء: {ex.InnerException?.Message ?? ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"فشل حفظ أمر الشراء: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }

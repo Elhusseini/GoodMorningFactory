@@ -1,6 +1,7 @@
 ﻿// UI/ViewModels/DashboardViewModel.cs
-// *** تحديث: تمت إضافة خصائص خاصة بالرسم البياني العمودي ***
+// *** تحديث: تمت إضافة خصائص منسقة لعرض المبالغ بالعملة الافتراضية ***
 using LiveCharts;
+using GoodMorningFactory.Core.Services;
 
 namespace GoodMorningFactory.UI.ViewModels
 {
@@ -10,11 +11,14 @@ namespace GoodMorningFactory.UI.ViewModels
         public decimal TotalSalesThisMonth { get; set; }
         public int TotalProducts { get; set; }
         public int LowStockProducts { get; set; }
-        public SeriesCollection TopSellingProductsSeries { get; set; }
 
-        // *** بداية التحديث ***
+        // --- بداية التحديث ---
+        public string TotalSalesTodayFormatted => $"{TotalSalesToday:N0} {AppSettings.DefaultCurrencySymbol}";
+        public string TotalSalesThisMonthFormatted => $"{TotalSalesThisMonth:N0} {AppSettings.DefaultCurrencySymbol}";
+        // --- نهاية التحديث ---
+
+        public SeriesCollection TopSellingProductsSeries { get; set; }
         public SeriesCollection MonthlySalesSeries { get; set; }
         public string[] MonthLabels { get; set; }
-        // *** نهاية التحديث ***
     }
 }

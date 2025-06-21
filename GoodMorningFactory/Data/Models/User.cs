@@ -1,26 +1,42 @@
 ﻿// Data/Models/User.cs
-// هذا الكلاس يمثل جدول المستخدمين في قاعدة البيانات.
-// كل خاصية (Property) فيه تمثل عموداً في الجدول.
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Data;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GoodMorningFactory.Data.Models
 {
     public class User
     {
-        [Key] // يحدد أن هذا الحقل هو المفتاح الأساسي للجدول
+        [Key]
         public int Id { get; set; }
 
-        [Required] // يحدد أن هذا الحقل مطلوب ولا يمكن أن يكون فارغاً
-        [MaxLength(100)] // يحدد الطول الأقصى للنص
+        [Required]
+        [MaxLength(100)]
         public string Username { get; set; }
 
-        [Required]
-        public string PasswordHash { get; set; } // سيتم تخزين كلمة المرور مشفرة
+        [MaxLength(100)]
+        public string? FirstName { get; set; }
 
-        public int RoleId { get; set; } // مفتاح أجنبي يربط المستخدم بالدور الخاص به
-        public Role Role { get; set; } // خاصية للتنقل (Navigation Property) لجلب بيانات الدور
+        [MaxLength(100)]
+        public string? LastName { get; set; }
+
+        [MaxLength(150)]
+        public string? Email { get; set; }
+
+        [MaxLength(20)]
+        public string? PhoneNumber { get; set; }
+
+        public byte[]? ProfilePicture { get; set; }
+
+        [Required]
+        public string PasswordHash { get; set; }
+
+        public int RoleId { get; set; }
+        public virtual Role Role { get; set; }
+
+        public int? DepartmentId { get; set; }
+        [ForeignKey("DepartmentId")]
+        public virtual Department Department { get; set; }
 
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.Now;

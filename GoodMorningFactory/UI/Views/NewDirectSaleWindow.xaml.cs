@@ -1,5 +1,6 @@
 ﻿// UI/Views/NewDirectSaleWindow.xaml.cs
-// *** الكود الكامل لنافذة البيع المباشر ***
+// *** تحديث: حفظ هوية العميل مباشرة مع الفاتورة ***
+using GoodMorningFactory.Core.Services;
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using System;
@@ -33,6 +34,7 @@ namespace GoodMorningFactory.UI.Views
         public NewDirectSaleWindow()
         {
             InitializeComponent();
+            AppSettings.LoadSettings(); // <-- إضافة هذا السطر
             SaleDatePicker.SelectedDate = DateTime.Today;
             SaleItemsDataGrid.ItemsSource = _items;
             _items.CollectionChanged += (s, e) => UpdateTotal();
@@ -67,7 +69,12 @@ namespace GoodMorningFactory.UI.Views
                 }
             }
         }
-        private void UpdateTotal() => TotalAmountTextBlock.Text = $"{_items.Sum(i => i.Subtotal):C}";
+        // تعديل دالة UpdateTotal():
+        private void UpdateTotal()
+        {
+            string currencySymbol = AppSettings.DefaultCurrencySymbol;
+            TotalAmountTextBlock.Text = $"{_items.Sum(i => i.Subtotal):N2} {currencySymbol}";
+        }
         private void RemoveItem_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as FrameworkElement)?.DataContext is DirectSaleItemViewModel item) _items.Remove(item);
@@ -88,13 +95,18 @@ namespace GoodMorningFactory.UI.Views
             {
                 try
                 {
+                    // --- بداية التحديث: إضافة CustomerId ---
                     var newSale = new Sale
                     {
                         InvoiceNumber = $"INV-POS-{DateTime.Now:yyyyMMddHHmmss}",
                         SaleDate = SaleDatePicker.SelectedDate ?? DateTime.Today,
+                        CustomerId = (int)CustomerComboBox.SelectedValue, // <-- إضافة مهمة
+                        Status = InvoiceStatus.Sent,
                         TotalAmount = _items.Sum(i => i.Subtotal),
                         AmountPaid = amountPaid
                     };
+                    // --- نهاية التحديث ---
+
 
                     foreach (var item in _items)
                     {

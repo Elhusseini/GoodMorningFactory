@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GoodMorningFactory")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3696f76d2de91816902fa400b385c6081f956834")]
 [assembly: System.Reflection.AssemblyProductAttribute("GoodMorningFactory")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GoodMorningFactory")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

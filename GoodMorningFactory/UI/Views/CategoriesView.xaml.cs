@@ -73,8 +73,38 @@ namespace GoodMorningFactory.UI.Views
         {
             if (CategoriesTreeView.SelectedItem is CategoryViewModel selectedCategory)
             {
-                // (منطق الحذف مع التحقق من عدم وجود فئات فرعية أو منتجات مرتبطة)
-                MessageBox.Show($"سيتم هنا حذف الفئة: {selectedCategory.Category.Name}", "تحت الإنشاء");
+                var categoryName = selectedCategory.Category.Name;
+                var result = MessageBox.Show($"هل أنت متأكد من حذف الفئة '{categoryName}'؟", "تأكيد الحذف", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result != MessageBoxResult.Yes) return;
+
+                try
+                {
+                    using (var db = new DatabaseContext())
+                    {
+                        // تحقق من عدم وجود فئات فرعية
+                        bool hasChildren = db.Categories.Any(c => c.ParentCategoryId == selectedCategory.Category.Id);
+                        if (hasChildren)
+                        {
+                            MessageBox.Show("لا يمكن حذف الفئة لوجود فئات فرعية مرتبطة بها.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
+                        // تحقق من عدم وجود منتجات مرتبطة
+                        bool hasProducts = db.Products.Any(p => p.CategoryId == selectedCategory.Category.Id);
+                        if (hasProducts)
+                        {
+                            MessageBox.Show("لا يمكن حذف الفئة لوجود منتجات مرتبطة بها.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
+
+                        db.Categories.Remove(selectedCategory.Category);
+                        db.SaveChanges();
+                        LoadCategories();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"فشل حذف الفئة: {ex.Message}");
+                }
             }
             else { MessageBox.Show("يرجى تحديد فئة لحذفها."); }
         }

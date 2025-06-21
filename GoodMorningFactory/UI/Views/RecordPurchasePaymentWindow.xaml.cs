@@ -1,7 +1,9 @@
 ﻿// UI/Views/RecordPurchasePaymentWindow.xaml.cs
-// *** ملف جديد: الكود الخلفي لنافذة تسجيل دفعة لمورد ***
+// *** تحديث شامل: إضافة إنشاء قيد محاسبي تلقائي عند تسجيل دفعة لمورد ***
+using GoodMorningFactory.Core.Services;
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
+using Microsoft.EntityFrameworkCore; // Required for Include
 using System;
 using System.Globalization;
 using System.Linq;
@@ -29,12 +31,13 @@ namespace GoodMorningFactory.UI.Views
                 if (purchase != null)
                 {
                     _balanceDue = purchase.TotalAmount - purchase.AmountPaid;
-
                     InvoiceNumberTextBlock.Text = purchase.InvoiceNumber;
-                    TotalAmountTextBlock.Text = purchase.TotalAmount.ToString("C", new CultureInfo("ar-KW"));
-                    PreviouslyPaidTextBlock.Text = purchase.AmountPaid.ToString("C", new CultureInfo("ar-KW"));
-                    BalanceDueTextBlock.Text = _balanceDue.ToString("C", new CultureInfo("ar-KW"));
-                    AmountToPayTextBox.Text = _balanceDue.ToString("N2").Replace(",", "");
+
+                    // تنسيق المبالغ مع رمز العملة
+                    TotalAmountTextBlock.Text = $"{purchase.TotalAmount:N2} {AppSettings.DefaultCurrencySymbol}";
+                    PreviouslyPaidTextBlock.Text = $"{purchase.AmountPaid:N2} {AppSettings.DefaultCurrencySymbol}";
+                    BalanceDueTextBlock.Text = $"{_balanceDue:N2} {AppSettings.DefaultCurrencySymbol}";
+                    AmountToPayTextBox.Text = _balanceDue.ToString("N2");
                 }
             }
         }
@@ -53,16 +56,16 @@ namespace GoodMorningFactory.UI.Views
                 return;
             }
 
-            try
+            using (var db = new DatabaseContext())
+            using (var transaction = db.Database.BeginTransaction())
             {
-                using (var db = new DatabaseContext())
+                try
                 {
-                    var purchase = db.Purchases.Find(_purchaseId);
+                    var purchase = db.Purchases.Include(p => p.Supplier).FirstOrDefault(p => p.Id == _purchaseId);
                     if (purchase != null)
                     {
                         purchase.AmountPaid += amountToPay;
 
-                        // تحديث حالة الفاتورة
                         if (purchase.AmountPaid >= purchase.TotalAmount)
                         {
                             purchase.Status = PurchaseInvoiceStatus.FullyPaid;
@@ -72,15 +75,42 @@ namespace GoodMorningFactory.UI.Views
                             purchase.Status = PurchaseInvoiceStatus.PartiallyPaid;
                         }
 
+                        // --- بداية التحديث: إنشاء القيد المحاسبي ---
+                        var companyInfo = db.CompanyInfos.FirstOrDefault();
+                        if (companyInfo?.DefaultCashAccountId == null || companyInfo?.DefaultAccountsPayableAccountId == null)
+                        {
+                            throw new Exception("لا يمكن إنشاء القيد المحاسبي. يرجى التأكد من تحديد حساب 'النقدية/البنك' و 'الذمم الدائنة' الافتراضي في شاشة الإعدادات.");
+                        }
+
+                        var journalVoucher = new JournalVoucher
+                        {
+                            VoucherNumber = $"PAY-{purchase.InvoiceNumber}-{DateTime.Now:HHmmss}",
+                            VoucherDate = DateTime.Today,
+                            Description = $"سداد دفعة للمورد: {purchase.Supplier.Name} للفاتورة رقم: {purchase.InvoiceNumber}",
+                            TotalDebit = amountToPay,
+                            TotalCredit = amountToPay,
+                            Status = VoucherStatus.Posted
+                        };
+
+                        // مدين: حساب الذمم الدائنة (لتقليل الالتزام)
+                        journalVoucher.JournalVoucherItems.Add(new JournalVoucherItem { AccountId = companyInfo.DefaultAccountsPayableAccountId.Value, Debit = amountToPay, Credit = 0 });
+                        // دائن: حساب النقدية/البنك (لتقليل رصيد النقدية)
+                        journalVoucher.JournalVoucherItems.Add(new JournalVoucherItem { AccountId = companyInfo.DefaultCashAccountId.Value, Debit = 0, Credit = amountToPay });
+
+                        db.JournalVouchers.Add(journalVoucher);
+                        // --- نهاية التحديث ---
+
                         db.SaveChanges();
-                        MessageBox.Show("تم تسجيل الدفعة بنجاح.", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
+                        transaction.Commit();
+                        MessageBox.Show("تم تسجيل الدفعة والقيد المحاسبي بنجاح.", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
                         this.DialogResult = true;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشلت عملية حفظ الدفعة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    MessageBox.Show($"فشلت عملية حفظ الدفعة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }

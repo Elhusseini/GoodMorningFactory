@@ -1,0 +1,28 @@
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditCostCenterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="إضافة/تعديل مركز تكلفة" Height="300" Width="400"
+        FlowDirection="RightToLeft" WindowStartupLocation="CenterScreen">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="بيانات مركز التكلفة" Style="{DynamicResource TitleTextBlockStyle}" Grid.Row="0" Margin="0,0,0,20"/>
+
+        <StackPanel Grid.Row="1">
+            <Label Content="الاسم:"/>
+            <TextBox x:Name="NameTextBox"/>
+            <Label Content="الوصف:"/>
+            <TextBox x:Name="DescriptionTextBox"/>
+            <CheckBox x:Name="IsActiveCheckBox" Content="نشط" Margin="0,10,0,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="حفظ" Style="{DynamicResource PrimaryButtonStyle}" Click="SaveButton_Click"/>
+            <Button Content="إلغاء" Style="{DynamicResource SecondaryButtonStyle}" Margin="10,0,0,0" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

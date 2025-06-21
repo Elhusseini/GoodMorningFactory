@@ -1,47 +1,90 @@
-﻿<!-- UI/Views/SalesView.xaml -->
-<!-- الكود الكامل لملف تصميم واجهة فواتير المبيعات -->
-<UserControl x:Class="GoodMorningFactory.UI.Views.SalesView"
+﻿<UserControl x:Class="GoodMorningFactory.UI.Views.SalesView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:GoodMorningFactory.UI.Views"
+             xmlns:converters="clr-namespace:GoodMorningFactory.UI.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="1000"
-             Background="#F5F5F5"
-             FlowDirection="RightToLeft">
-    <Grid Margin="10">
+             d:DesignHeight="700" d:DesignWidth="1000"
+             FlowDirection="RightToLeft"
+             Background="WhiteSmoke">
+    <UserControl.Resources>
+        <converters:EnumToDescriptionConverter x:Key="EnumToDescriptionConverter"/>
+    </UserControl.Resources>
+
+    <Grid Margin="15">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <ToolBarTray Grid.Row="0">
-            <ToolBar>
-                <Button Content="🧾 فاتورة بيع جديدة" Margin="5" Padding="5" Click="NewSaleButton_Click"/>
-                <Button Content="🖨️ طباعة الفاتورة المحددة" Margin="5" Padding="5" Click="PrintInvoiceButton_Click"/>
-                <Separator/>
-                <TextBlock Text="فلترة حسب الحالة:" VerticalAlignment="Center" Margin="10,0,5,0"/>
-                <ComboBox x:Name="StatusFilterComboBox" Width="150" SelectionChanged="StatusFilterComboBox_SelectionChanged"/>
-            </ToolBar>
-        </ToolBarTray>
+        <!-- 1. عنوان الشاشة وشريط الأدوات -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <TextBlock Text="فواتير المبيعات" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+            <Button x:Name="NewSaleButton" Content="+ فاتورة بيع مباشر" Margin="20,0,0,0" Click="NewSaleButton_Click"/>
+            <!-- زر التصدير الجديد -->
+            <Button x:Name="ExportToCsvButton" Content="📁 تصدير إلى CSV" Margin="10,0,0,0" Click="ExportToCsvButton_Click" Background="#107C10" Foreground="White"/>
+        </StackPanel>
 
-        <DataGrid x:Name="SalesDataGrid" Grid.Row="1" Margin="0,10,0,0"
-                  IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
+        <!-- 2. قسم الفلاتر والبحث -->
+        <Border Grid.Row="1" Background="White" CornerRadius="5" Padding="10" Margin="0,0,0,10">
+            <WrapPanel>
+                <StackPanel Margin="5">
+                    <TextBlock Text="بحث (برقم الفاتورة أو العميل):" FontWeight="SemiBold"/>
+                    <TextBox x:Name="SearchTextBox" Width="200" KeyUp="Filter_KeyUp"/>
+                </StackPanel>
+                <StackPanel Margin="5">
+                    <TextBlock Text="العميل:" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="CustomerFilterComboBox" Width="150" SelectionChanged="Filter_Changed"/>
+                </StackPanel>
+                <StackPanel Margin="5">
+                    <TextBlock Text="الحالة:" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="StatusFilterComboBox" Width="120" SelectionChanged="StatusFilterComboBox_SelectionChanged">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource EnumToDescriptionConverter}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Margin="5">
+                    <TextBlock Text="تاريخ الاستحقاق من:" FontWeight="SemiBold"/>
+                    <DatePicker x:Name="DueDateFromPicker" Width="120" SelectedDateChanged="Filter_Changed"/>
+                </StackPanel>
+                <StackPanel Margin="5">
+                    <TextBlock Text="إلى:" FontWeight="SemiBold"/>
+                    <DatePicker x:Name="DueDateToPicker" Width="120" SelectedDateChanged="Filter_Changed"/>
+                </StackPanel>
+            </WrapPanel>
+        </Border>
+
+        <!-- 3. جدول عرض الفواتير -->
+        <DataGrid Grid.Row="2" x:Name="SalesDataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="رقم الفاتورة" Binding="{Binding InvoiceNumber}" Width="*"/>
-                <DataGridTextColumn Header="رقم أمر البيع" Binding="{Binding SalesOrder.SalesOrderNumber}" Width="*"/>
-                <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="*" FontWeight="Bold"/>
-                <DataGridTextColumn Header="إجمالي المبلغ" Binding="{Binding TotalAmount, StringFormat={}{0:C}}" Width="*"/>
-                <DataGridTextColumn Header="المبلغ المدفوع" Binding="{Binding AmountPaid, StringFormat={}{0:C}}" Width="*"/>
-                <DataGridTextColumn Header="الرصيد المستحق" Binding="{Binding BalanceDue, StringFormat={}{0:C}}" Width="*" FontWeight="Bold"/>
+                <DataGridTextColumn Header="العميل" Binding="{Binding CustomerName}" Width="2*"/>
+                <DataGridTextColumn Header="تاريخ الفاتورة" Binding="{Binding SaleDate, StringFormat='d'}" Width="*"/>
+                <DataGridTextColumn Header="تاريخ الاستحقاق" Binding="{Binding DueDate, StringFormat='d'}" Width="*"/>
+                <DataGridTextColumn Header="الإجمالي" Binding="{Binding TotalAmountFormatted}" Width="*" FontWeight="Bold"/>
+                <DataGridTextColumn Header="المدفوع" Binding="{Binding AmountPaidFormatted}" Width="*"/>
+                <DataGridTextColumn Header="المتبقي" Binding="{Binding BalanceDueFormatted}" Width="*" FontWeight="Bold"/>
+                <DataGridTemplateColumn Header="الحالة" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Status, Converter={StaticResource EnumToDescriptionConverter}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTemplateColumn Header="إجراءات" Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
+                                <Button Content="تسجيل دفعة" Margin="2" Click="RecordPaymentButton_Click"/>
+                                <Button Content="إنشاء مرتجع" Margin="2" Click="CreateReturnButton_Click"/>
+                                <Button Content="طباعة" Margin="2" Click="PrintInvoiceButton_Click"/>
                                 <Button Content="تعديل" Margin="2" Click="EditButton_Click"/>
-                                <Button Content="تسجيل دفعة" Margin="2" Click="RecordPaymentButton_Click" Background="DarkSeaGreen"/>
-                                <Button Content="إنشاء مرتجع" Margin="2" Click="CreateReturnButton_Click" Background="OrangeRed" Foreground="White"/>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

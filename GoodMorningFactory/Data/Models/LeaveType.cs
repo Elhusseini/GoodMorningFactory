@@ -1,5 +1,5 @@
 ﻿// Data/Models/LeaveType.cs
-// *** ملف جديد: يمثل أنواع الإجازات المختلفة (سنوية, مرضية, إلخ) ***
+// *** تحديث: تمت إضافة خاصية لتحديد نوع الإجازة (مدفوعة/غير مدفوعة) ***
 using System.ComponentModel.DataAnnotations;
 
 namespace GoodMorningFactory.Data.Models
@@ -16,5 +16,9 @@ namespace GoodMorningFactory.Data.Models
         public string? Description { get; set; }
 
         public int DaysPerYear { get; set; } // عدد الأيام المستحقة سنوياً
+
+        // --- بداية التحديث ---
+        public bool IsPaid { get; set; } = true; // هل الإجازة مدفوعة الأجر؟
+        // --- نهاية التحديث ---
     }
 }

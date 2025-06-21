@@ -6,10 +6,20 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>UI\Icons\shirt_18743278.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="UI\Assets\default-user.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="UI\Icons\shirt_18743278.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
+    <PackageReference Include="MaterialDesignThemes.WPF" Version="1.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
       <PrivateAssets>all</PrivateAssets>
@@ -24,9 +34,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="UI\Assets\default-user.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="UI\ViewModels\ProductViewModel.cs">
       <Generator>MSBuild:Compile</Generator>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Docs\financial\" />
   </ItemGroup>
 
 </Project>

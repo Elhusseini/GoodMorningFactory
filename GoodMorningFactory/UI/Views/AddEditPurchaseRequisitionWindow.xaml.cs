@@ -1,7 +1,7 @@
 ﻿// UI/Views/AddEditPurchaseRequisitionWindow.xaml.cs
-// *** الكود الكامل لنافذة إضافة وتعديل طلب شراء مع إضافة مُنشئ التعديل ***
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
+using GoodMorningFactory.Core.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.ObjectModel;
@@ -13,6 +13,7 @@ namespace GoodMorningFactory.UI.Views
 {
     public class PurchaseRequisitionItemViewModel : INotifyPropertyChanged
     {
+        public int? ProductId { get; set; }
         public string Description { get; set; }
         public decimal Quantity { get; set; }
         public string UnitOfMeasure { get; set; }
@@ -29,7 +30,7 @@ namespace GoodMorningFactory.UI.Views
         {
             InitializeComponent();
             _requisitionId = requisitionId;
-            ItemsDataGrid.ItemsSource = _items;
+            InitializeWindow();
 
             if (_requisitionId.HasValue)
             {
@@ -39,6 +40,55 @@ namespace GoodMorningFactory.UI.Views
             else
             {
                 Title = "إنشاء طلب شراء جديد";
+                _items.Add(new PurchaseRequisitionItemViewModel());
+            }
+        }
+
+        public AddEditPurchaseRequisitionWindow(int productId, decimal quantity)
+        {
+            InitializeComponent();
+            InitializeWindow();
+            Title = "إنشاء طلب شراء من MRP";
+
+            using (var db = new DatabaseContext())
+            {
+                var product = db.Products.Include(p => p.UnitOfMeasure).FirstOrDefault(p => p.Id == productId);
+                if (product != null)
+                {
+                    _items.Add(new PurchaseRequisitionItemViewModel
+                    {
+                        ProductId = product.Id,
+                        Description = product.Name,
+                        Quantity = quantity,
+                        UnitOfMeasure = product.UnitOfMeasure?.Name
+                    });
+                }
+            }
+        }
+
+        private void InitializeWindow()
+        {
+            ItemsDataGrid.ItemsSource = _items;
+
+            using (var db = new DatabaseContext())
+            {
+                ProductColumn.ItemsSource = db.Products.ToList();
+                RequesterComboBox.ItemsSource = db.Users.Where(u => u.IsActive).ToList();
+                DepartmentComboBox.ItemsSource = db.Departments.ToList();
+            }
+
+            if (CurrentUserService.LoggedInUser != null)
+            {
+                RequesterComboBox.SelectedValue = CurrentUserService.LoggedInUser.Username;
+                if (CurrentUserService.LoggedInUser.DepartmentId != null)
+                {
+                    using (var db = new DatabaseContext())
+                    {
+                        var dept = db.Departments.FirstOrDefault(d => d.Id == CurrentUserService.LoggedInUser.DepartmentId);
+                        if (dept != null)
+                            DepartmentComboBox.SelectedValue = dept.Name;
+                    }
+                }
             }
         }
 
@@ -51,13 +101,16 @@ namespace GoodMorningFactory.UI.Views
                 var requisition = db.PurchaseRequisitions.Include(pr => pr.PurchaseRequisitionItems).FirstOrDefault(pr => pr.Id == _requisitionId.Value);
                 if (requisition != null)
                 {
-                    RequesterTextBox.Text = requisition.RequesterName;
-                    DepartmentTextBox.Text = requisition.Department;
+                    RequesterComboBox.SelectedValue = requisition.RequesterName;
+                    DepartmentComboBox.SelectedValue = requisition.Department;
                     PurposeTextBox.Text = requisition.Purpose;
+
+                    _items.Clear();
                     foreach (var item in requisition.PurchaseRequisitionItems)
                     {
                         _items.Add(new PurchaseRequisitionItemViewModel
                         {
+                            ProductId = item.ProductId,
                             Description = item.Description,
                             Quantity = item.Quantity,
                             UnitOfMeasure = item.UnitOfMeasure
@@ -69,9 +122,9 @@ namespace GoodMorningFactory.UI.Views
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(RequesterTextBox.Text) || string.IsNullOrWhiteSpace(DepartmentTextBox.Text) || !_items.Any())
+            if (RequesterComboBox.SelectedItem == null || DepartmentComboBox.SelectedItem == null || !_items.Any(i => i.Quantity > 0))
             {
-                MessageBox.Show("يرجى إدخال جميع البيانات المطلوبة وإضافة أصناف.", "بيانات ناقصة", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("يرجى اختيار مقدم الطلب والقسم وإضافة صنف واحد على الأقل بكمية صحيحة.", "بيانات ناقصة", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -83,6 +136,11 @@ namespace GoodMorningFactory.UI.Views
                     if (_requisitionId.HasValue)
                     {
                         pr = db.PurchaseRequisitions.Include(p => p.PurchaseRequisitionItems).FirstOrDefault(p => p.Id == _requisitionId.Value);
+                        if (pr == null)
+                        {
+                            MessageBox.Show("لم يتم العثور على طلب الشراء المطلوب تعديله.", "خطأ");
+                            return;
+                        }
                         db.PurchaseRequisitionItems.RemoveRange(pr.PurchaseRequisitionItems);
                     }
                     else
@@ -92,16 +150,28 @@ namespace GoodMorningFactory.UI.Views
                     }
 
                     pr.RequisitionDate = DateTime.Today;
-                    pr.RequesterName = RequesterTextBox.Text;
-                    pr.Department = DepartmentTextBox.Text;
+                    pr.RequesterName = RequesterComboBox.SelectedValue?.ToString();
+                    pr.Department = DepartmentComboBox.SelectedValue?.ToString();
                     pr.Purpose = PurposeTextBox.Text;
                     pr.Status = RequisitionStatus.Draft;
 
-                    foreach (var item in _items.Where(i => !string.IsNullOrWhiteSpace(i.Description) && i.Quantity > 0))
+                    foreach (var item in _items.Where(i => i.Quantity > 0))
                     {
+                        string description = item.Description;
+                        if (string.IsNullOrWhiteSpace(description) && item.ProductId.HasValue)
+                        {
+                            description = db.Products.Find(item.ProductId.Value)?.Name;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(description))
+                        {
+                            continue;
+                        }
+
                         pr.PurchaseRequisitionItems.Add(new PurchaseRequisitionItem
                         {
-                            Description = item.Description,
+                            ProductId = item.ProductId,
+                            Description = description,
                             Quantity = item.Quantity,
                             UnitOfMeasure = item.UnitOfMeasure
                         });
@@ -114,7 +184,8 @@ namespace GoodMorningFactory.UI.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"فشل إنشاء طلب الشراء: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                string innerExceptionMessage = ex.InnerException != null ? ex.InnerException.Message : "لا توجد تفاصيل إضافية.";
+                MessageBox.Show($"فشل إنشاء طلب الشراء: {ex.Message}\n\nالتفاصيل: {innerExceptionMessage}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

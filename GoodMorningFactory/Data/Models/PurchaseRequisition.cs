@@ -1,14 +1,27 @@
 ﻿// Data/Models/PurchaseRequisition.cs
-// *** الكود الكامل لنموذج طلبات الشراء مع إضافة الحالة المفقودة ***
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GoodMorningFactory.Data.Models
 {
-    // *** بداية الإصلاح: إضافة الحالة المفقودة ***
-    public enum RequisitionStatus { Draft, PendingApproval, Approved, Rejected, PO_Created, Cancelled }
-    // *** نهاية الإصلاح ***
+    public enum RequisitionStatus
+    {
+        [Description("مسودة")]
+        Draft,
+        [Description("قيد الموافقة")]
+        PendingApproval,
+        [Description("موافق عليه")]
+        Approved,
+        [Description("مرفوض")]
+        Rejected,
+        [Description("تم إنشاء أمر شراء")]
+        PO_Created,
+        [Description("ملغي")]
+        Cancelled
+    }
 
     public class PurchaseRequisition
     {
@@ -28,15 +41,22 @@ namespace GoodMorningFactory.Data.Models
         public DateTime RequisitionDate { get; set; }
 
         [Required]
+        [MaxLength(100)]
         public string RequesterName { get; set; }
 
         [Required]
+        [MaxLength(100)]
         public string Department { get; set; }
 
         public string? Purpose { get; set; }
 
         [Required]
         public RequisitionStatus Status { get; set; }
+
+        // --- بداية الإضافة: حقل لربط الطلب بنظام الموافقات ---
+        public int? ApprovalRequestId { get; set; }
+        public virtual ApprovalRequest ApprovalRequest { get; set; }
+        // --- نهاية الإضافة ---
 
         public virtual ICollection<PurchaseRequisitionItem> PurchaseRequisitionItems { get; set; }
     }

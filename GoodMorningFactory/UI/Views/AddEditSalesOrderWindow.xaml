@@ -1,13 +1,13 @@
-﻿<!-- UI/Views/AddEditSalesOrderWindow.xaml -->
-<!-- *** ملف جديد: نافذة إنشاء وتعديل أمر البيع *** -->
-<Window x:Class="GoodMorningFactory.UI.Views.AddEditSalesOrderWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditSalesOrderWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GoodMorningFactory.UI.Views"
         mc:Ignorable="d"
-        Title="إنشاء / تعديل أمر بيع" Height="700" Width="1100"
-        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+        Title="إنشاء / تعديل أمر بيع" Height="700" Width="900"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="RightToLeft">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -15,69 +15,79 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <GroupBox Header="معلومات أمر البيع" Grid.Row="0" Margin="10">
+        <!-- الجزء العلوي: معلومات الأمر الأساسية -->
+        <Border Grid.Row="0" Padding="10" Margin="5" Background="AliceBlue">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
 
-                <Label Grid.Row="0" Grid.Column="0" Content="العميل:"/>
-                <ComboBox x:Name="CustomerComboBox" Grid.Row="0" Grid.Column="1" Margin="5" DisplayMemberPath="CustomerName" SelectedValuePath="Id"/>
-
-                <Label Grid.Row="1" Grid.Column="0" Content="تاريخ الأمر:"/>
-                <DatePicker x:Name="OrderDatePicker" Grid.Row="1" Grid.Column="1" Margin="5"/>
-
-                <Label Grid.Row="0" Grid.Column="2" Content="رقم الأمر:"/>
-                <TextBox x:Name="OrderNumberTextBox" Grid.Row="0" Grid.Column="3" Margin="5" IsReadOnly="True" Background="#EEEEEE"/>
-
-                <Label Grid.Row="1" Grid.Column="2" Content="تاريخ الشحن المتوقع:"/>
-                <DatePicker x:Name="ShipDatePicker" Grid.Row="1" Grid.Column="3" Margin="5"/>
-            </Grid>
-        </GroupBox>
-
-        <GroupBox Header="بنود أمر البيع" Grid.Row="1" Margin="10,0,10,10">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal" Margin="5">
-                    <TextBlock Text="بحث عن منتج:" VerticalAlignment="Center" Margin="5"/>
-                    <TextBox x:Name="SearchProductTextBox" Width="300" KeyUp="SearchProductTextBox_KeyUp"/>
+                <StackPanel Grid.Column="0" Margin="5">
+                    <TextBlock Text="رقم أمر البيع:"/>
+                    <TextBox x:Name="OrderNumberTextBox" IsReadOnly="True"/>
                 </StackPanel>
 
-                <DataGrid x:Name="OrderItemsDataGrid" Grid.Row="1" Margin="5" CanUserAddRows="False" AutoGenerateColumns="False">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="المنتج" Binding="{Binding ProductName}" Width="3*" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="الوصف" Binding="{Binding Description}" Width="3*"/>
-                        <DataGridTextColumn Header="سعر الوحدة" Binding="{Binding UnitPrice, StringFormat=N2}" Width="*"/>
-                        <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity}" Width="*"/>
-                        <DataGridTextColumn Header="الخصم" Binding="{Binding Discount, StringFormat=N2}" Width="*"/>
-                        <DataGridTextColumn Header="الإجمالي" Binding="{Binding Subtotal, StringFormat=N2}" Width="*" IsReadOnly="True"/>
-                        <DataGridTemplateColumn>
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Content="❌" Click="RemoveItem_Click" Background="Transparent" BorderThickness="0" Foreground="Red"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
-        </GroupBox>
+                <StackPanel Grid.Column="1" Margin="5">
+                    <TextBlock Text="العميل (*):"/>
+                    <ComboBox x:Name="CustomerComboBox" DisplayMemberPath="CustomerName" SelectedValuePath="Id"/>
+                </StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
-            <TextBlock Text="الإجمالي النهائي:" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-            <TextBlock x:Name="TotalAmountTextBlock" Text="0.00" FontSize="16" FontWeight="Bold" Foreground="Blue" Margin="10,0" VerticalAlignment="Center"/>
-            <Button Content="💾 حفظ وتأكيد الأمر" Width="150" Margin="20,0,5,0" Padding="8" Click="SaveButton_Click"/>
-            <Button Content="إلغاء" Width="100" Margin="5" Padding="8" IsCancel="True"/>
+                <StackPanel Grid.Column="2" Margin="5">
+                    <TextBlock Text="قائمة الأسعار:"/>
+                    <ComboBox x:Name="PriceListComboBox" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                </StackPanel>
+                
+
+                <StackPanel Grid.Column="3" Margin="5">
+                    <TextBlock Text="تاريخ الأمر:"/>
+                    <DatePicker x:Name="OrderDatePicker"/>
+                    <TextBlock Text="تاريخ الشحن المتوقع:"/>
+                    <DatePicker x:Name="ShipDatePicker"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- الجزء الأوسط: بنود أمر البيع -->
+        <Grid Grid.Row="1" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                <TextBlock Text="بحث عن منتج (بالكود أو الاسم):" VerticalAlignment="Center"/>
+                <Button x:Name="AddProductButton" Content="إضافة" DockPanel.Dock="Left" Margin="10,0,0,0" Click="AddProductButton_Click"/>
+                <TextBox x:Name="SearchProductTextBox" Margin="10,0" KeyUp="SearchProductTextBox_KeyUp"/>
+            </DockPanel>
+            <DataGrid Grid.Row="1" x:Name="OrderItemsDataGrid" AutoGenerateColumns="False" CanUserAddRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="اسم المنتج" Binding="{Binding ProductName}" Width="2*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="الوصف" Binding="{Binding Description}" Width="3*"/>
+                    <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                    <DataGridTextColumn Header="سعر الوحدة" Binding="{Binding UnitPrice, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                    <DataGridTextColumn Header="الخصم" Binding="{Binding Discount, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                    <DataGridTextColumn Header="الإجمالي الفرعي" Binding="{Binding SubtotalFormatted}" Width="*" IsReadOnly="True"/>
+                    <DataGridTemplateColumn Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="حذف" Click="RemoveItem_Click" Background="Transparent" Foreground="Red" BorderThickness="0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <!-- الجزء السفلي: الإجماليات والأزرار -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="#F0F0F0" MinHeight="50">
+            <TextBlock Text="الإجمالي:" FontSize="16" FontWeight="Bold" Margin="10,0" VerticalAlignment="Center"/>
+            <TextBlock x:Name="TotalAmountTextBlock" Text="0.00" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Foreground="Blue"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,10,0">
+                <Button x:Name="SaveButton" Content="حفظ" Width="100" Margin="5" IsDefault="True" Click="SaveButton_Click"/>
+                <Button Content="إلغاء" Width="100" Margin="5" IsCancel="True"/>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </Window>

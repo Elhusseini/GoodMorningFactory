@@ -49,7 +49,36 @@ namespace GoodMorningFactory.UI.Views
 
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            // (منطق الحذف مع التحقق من عدم استخدام الوحدة في أي منتج)
+            if ((sender as Button)?.DataContext is UnitOfMeasure uom)
+            {
+                var result = MessageBox.Show($"هل أنت متأكد من حذف وحدة القياس '{uom.Name}'؟", "تأكيد الحذف", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result != MessageBoxResult.Yes) return;
+
+                try
+                {
+                    using (var db = new DatabaseContext())
+                    {
+                        // تحقق من عدم استخدام الوحدة في أي منتج
+                        bool isUsed = db.Products.Any(p => p.UnitOfMeasureId == uom.Id);
+                        if (isUsed)
+                        {
+                            MessageBox.Show("لا يمكن حذف وحدة القياس لأنها مستخدمة في منتجات.", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
+                        var entity = db.UnitsOfMeasure.Find(uom.Id);
+                        if (entity != null)
+                        {
+                            db.UnitsOfMeasure.Remove(entity);
+                            db.SaveChanges();
+                            LoadUoms();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"حدث خطأ أثناء الحذف: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
     }
 }

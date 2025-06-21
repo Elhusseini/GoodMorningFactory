@@ -1,11 +1,12 @@
 ﻿// UI/Views/SupplierStatementWindow.xaml.cs
-// *** ملف جديد: الكود الخلفي لنافذة كشف حساب المورد ***
+// *** تحديث شامل: عرض جميع الحركات المالية للمورد ***
 using GoodMorningFactory.Data;
 using GoodMorningFactory.UI.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using Microsoft.EntityFrameworkCore;
 
 namespace GoodMorningFactory.UI.Views
 {
@@ -31,20 +32,33 @@ namespace GoodMorningFactory.UI.Views
 
                     SupplierNameTextBlock.Text = $"كشف حساب المورد: {supplier.Name}";
 
+                    // 1. جلب الفواتير (حركة دائنة للمورد)
                     var purchases = db.Purchases
                         .Where(p => p.SupplierId == _supplierId)
-                        .Select(p => new { Date = p.PurchaseDate, Type = "فاتورة شراء", Ref = p.InvoiceNumber, Debit = 0m, Credit = p.TotalAmount })
+                        .Select(p => new { p.PurchaseDate, Type = "فاتورة شراء", Ref = p.InvoiceNumber, Debit = 0m, Credit = p.TotalAmount })
                         .ToList();
 
-                    var payments = new List<object>(); // سيتم ملؤها عند بناء وحدة المدفوعات
+                    // 2. جلب المرتجعات (حركة مدينة للمورد)
+                    var returns = db.PurchaseReturns
+                        .Where(pr => pr.Purchase.SupplierId == _supplierId)
+                        .Select(pr => new { ReturnDate = pr.ReturnDate, Type = "مرتجع مشتريات", Ref = pr.ReturnNumber, Debit = pr.TotalReturnValue, Credit = 0m })
+                        .ToList();
 
-                    var transactions = purchases.Select(p => new { p.Date, p.Type, p.Ref, p.Debit, p.Credit })
+                    // 3. جلب المدفوعات (حركة مدينة للمورد)
+                    var payments = db.JournalVouchers
+                        .Where(jv => jv.Description.Contains($"سداد دفعة للمورد: {supplier.Name}"))
+                        .Select(jv => new { Date = jv.VoucherDate, Type = "دفعة مسددة", Ref = jv.VoucherNumber, Debit = jv.TotalDebit, Credit = 0m })
+                        .ToList();
+
+                    var allTransactions = purchases.Select(p => new { Date = p.PurchaseDate, p.Type, p.Ref, p.Debit, p.Credit })
+                                                   .Union(returns.Select(r => new { Date = r.ReturnDate, r.Type, r.Ref, r.Debit, r.Credit }))
+                                                   .Union(payments.Select(p => new { p.Date, p.Type, p.Ref, p.Debit, p.Credit }))
                                                 .OrderBy(t => t.Date)
                                                 .ToList();
 
                     var statementItems = new List<SupplierStatementItemViewModel>();
                     decimal currentBalance = 0;
-                    foreach (var trans in transactions)
+                    foreach (var trans in allTransactions)
                     {
                         currentBalance += trans.Credit - trans.Debit; // الرصيد دائن للمورد
                         statementItems.Add(new SupplierStatementItemViewModel

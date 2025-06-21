@@ -14,6 +14,9 @@ namespace GoodMorningFactory.Data.Models
         public int PurchaseRequisitionId { get; set; }
         public virtual PurchaseRequisition PurchaseRequisition { get; set; }
 
+        public int? ProductId { get; set; }
+        public virtual Product Product { get; set; } // إضافة هذه العلاقة
+
         [Required]
         public string Description { get; set; }
 

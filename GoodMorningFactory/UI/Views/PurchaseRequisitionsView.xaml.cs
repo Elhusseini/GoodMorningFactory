@@ -1,8 +1,9 @@
 ﻿// UI/Views/PurchaseRequisitionsView.xaml.cs
-// *** الكود الكامل للكود الخلفي لواجهة طلبات الشراء مع جميع الوظائف ***
+// *** تحديث: تم إصلاح خطأ الترتيب حسب حقل decimal في SQLite ***
 using GoodMorningFactory.Core.Services;
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -84,83 +85,107 @@ namespace GoodMorningFactory.UI.Views
         {
             if ((sender as Button)?.DataContext is PurchaseRequisition requisition)
             {
-                if (requisition.Status != RequisitionStatus.Draft)
-                {
-                    MessageBox.Show("لا يمكن تعديل هذا الطلب إلا إذا كان في حالة 'مسودة'.", "عملية غير ممكنة", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
                 var editWindow = new AddEditPurchaseRequisitionWindow(requisition.Id);
                 if (editWindow.ShowDialog() == true) { LoadRequisitions(); }
             }
         }
 
-        private void ApproveButton_Click(object sender, RoutedEventArgs e)
+        private void SubmitForApprovalButton_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as Button)?.DataContext is PurchaseRequisition requisition)
             {
-                UpdateRequisitionStatus(requisition.Id, RequisitionStatus.Approved, "الموافقة على");
+                using (var db = new DatabaseContext())
+                {
+                    // --- بداية الإصلاح ---
+                    // جلب البيانات إلى الذاكرة أولاً باستخدام ToList() ثم ترتيبها
+                    var workflow = db.ApprovalWorkflows
+                        .Include(w => w.Steps)
+                        .Where(w => w.DocumentType == DocumentType.PurchaseRequisition && w.IsActive)
+                        .ToList() // جلب البيانات إلى الذاكرة
+                        .OrderByDescending(w => w.MinimumAmount) // الترتيب يتم الآن في ذاكرة التطبيق
+                        .FirstOrDefault();
+                    // --- نهاية الإصلاح ---
+
+                    if (workflow != null && workflow.Steps.Any())
+                    {
+                        var approvalRequest = new ApprovalRequest
+                        {
+                            DocumentId = requisition.Id,
+                            DocumentType = DocumentType.PurchaseRequisition,
+                            RequestDate = DateTime.UtcNow,
+                            Status = ApprovalStatus.Pending,
+                            CurrentStepId = workflow.Steps.OrderBy(s => s.StepOrder).First().Id
+                        };
+                        db.ApprovalRequests.Add(approvalRequest);
+
+                        var prToUpdate = db.PurchaseRequisitions.Find(requisition.Id);
+                        prToUpdate.Status = RequisitionStatus.PendingApproval;
+                        prToUpdate.ApprovalRequest = approvalRequest;
+                    }
+                    else
+                    {
+                        var prToUpdate = db.PurchaseRequisitions.Find(requisition.Id);
+                        prToUpdate.Status = RequisitionStatus.Approved;
+                    }
+
+                    db.SaveChanges();
+                    LoadRequisitions();
+                    MessageBox.Show("تم إرسال الطلب للموافقة بنجاح.", "نجاح");
+                }
             }
+        }
+
+        private void ApproveButton_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateRequisitionStatus(sender, RequisitionStatus.Approved, "الموافقة على");
         }
 
         private void RejectButton_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.DataContext is PurchaseRequisition requisition)
-            {
-                UpdateRequisitionStatus(requisition.Id, RequisitionStatus.Rejected, "رفض");
-            }
+            UpdateRequisitionStatus(sender, RequisitionStatus.Rejected, "رفض");
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.DataContext is PurchaseRequisition requisition)
-            {
-                UpdateRequisitionStatus(requisition.Id, RequisitionStatus.Cancelled, "إلغاء");
-            }
+            UpdateRequisitionStatus(sender, RequisitionStatus.Cancelled, "إلغاء");
         }
 
-        private void UpdateRequisitionStatus(int requisitionId, RequisitionStatus newStatus, string actionName)
+        private void UpdateRequisitionStatus(object sender, RequisitionStatus newStatus, string actionName)
         {
-            var result = MessageBox.Show($"هل أنت متأكد من {actionName} هذا الطلب؟", "تأكيد", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.No) return;
-
-            using (var db = new DatabaseContext())
+            if ((sender as Button)?.DataContext is PurchaseRequisition requisition)
             {
-                var requisition = db.PurchaseRequisitions.Find(requisitionId);
-                if (requisition != null)
+                var result = MessageBox.Show($"هل أنت متأكد من {actionName} هذا الطلب؟", "تأكيد", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.No) return;
+
+                using (var db = new DatabaseContext())
                 {
-                    requisition.Status = newStatus;
-                    db.SaveChanges();
-                    LoadRequisitions();
+                    var reqInDb = db.PurchaseRequisitions.Find(requisition.Id);
+                    if (reqInDb != null)
+                    {
+                        reqInDb.Status = newStatus;
+                        db.SaveChanges();
+                        LoadRequisitions();
+                    }
                 }
             }
         }
 
-        // --- بداية التحديث: تفعيل منطق تحويل الطلب ---
         private void ConvertToPOButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!PermissionsService.CanAccess("Purchases.Orders.Create"))
+            if (!PermissionsService.CanAccess("Purchasing.Orders.Create"))
             {
                 MessageBox.Show("ليس لديك صلاحية لإنشاء أوامر شراء.", "وصول مرفوض", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            // --- نهاية التحديث ---
+
             if ((sender as Button)?.DataContext is PurchaseRequisition requisition)
             {
-                if (requisition.Status != RequisitionStatus.Approved)
-                {
-                    MessageBox.Show("لا يمكن تحويل هذا الطلب إلى أمر شراء إلا إذا كان في حالة 'موافق عليه'.", "عملية غير ممكنة", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                // فتح نافذة أمر الشراء مع تمرير هوية طلب الشراء
                 var poWindow = new AddEditPurchaseOrderWindow(sourceRequisitionId: requisition.Id);
                 if (poWindow.ShowDialog() == true)
                 {
-                    // تحديث قائمة طلبات الشراء بعد إنشاء أمر الشراء
                     LoadRequisitions();
                 }
             }
         }
-        // --- نهاية التحديث ---
     }
 }

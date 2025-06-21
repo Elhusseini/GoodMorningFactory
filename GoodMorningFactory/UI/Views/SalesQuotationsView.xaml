@@ -5,6 +5,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:s="clr-namespace:GoodMorningFactory.Core.Services"
+
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1000"
              Background="#F5F5F5" FlowDirection="RightToLeft">
@@ -39,7 +41,16 @@
                 <DataGridTextColumn Header="العميل" Binding="{Binding Customer.CustomerName}" Width="2*"/>
                 <DataGridTextColumn Header="تاريخ العرض" Binding="{Binding QuotationDate, StringFormat='d'}" Width="*"/>
                 <DataGridTextColumn Header="تاريخ الصلاحية" Binding="{Binding ValidUntilDate, StringFormat='d'}" Width="*"/>
-                <DataGridTextColumn Header="الإجمالي" Binding="{Binding TotalAmount, StringFormat={}{0:C}}" Width="*"/>
+                <DataGridTemplateColumn Header="الإجمالي" Width="*" SortMemberPath="TotalAmount">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock HorizontalAlignment="Right" Margin="4,0,0,0">
+                                <Run Text="{Binding TotalAmount, StringFormat=N2}"/>
+                                <Run Text="{x:Static s:AppSettings.DefaultCurrencySymbol}" />
+                            </TextBlock>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
                 <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="*"/>
                 <DataGridTemplateColumn Header="إجراءات" Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>

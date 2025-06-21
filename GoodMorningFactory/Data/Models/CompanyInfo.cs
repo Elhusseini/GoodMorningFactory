@@ -1,7 +1,6 @@
 ﻿// Data/Models/CompanyInfo.cs
-// *** تحديث: تمت إضافة حقول للحسابات الافتراضية ***
+// *** تحديث: إضافة إعدادات النسخ الاحتياطي التلقائي ***
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GoodMorningFactory.Data.Models
 {
@@ -24,33 +23,38 @@ namespace GoodMorningFactory.Data.Models
 
         // --- الحسابات الافتراضية ---
         public int? DefaultSalesAccountId { get; set; }
-        [ForeignKey("DefaultSalesAccountId")]
-        public virtual Account? DefaultSalesAccount { get; set; }
-
-        // المفتاح الأجنبي لحساب العملاء (الذمم المدينة) الافتراضي
         public int? DefaultAccountsReceivableAccountId { get; set; }
-        [ForeignKey("DefaultAccountsReceivableAccountId")]
-        public virtual Account? DefaultAccountsReceivableAccount { get; set; }
-        // --- نهاية التحديث ---
-        // --- بداية التحديث: إضافة الحسابات الافتراضية للمشتريات ---
         public int? DefaultPurchasesAccountId { get; set; }
         public int? DefaultAccountsPayableAccountId { get; set; }
+        public int? DefaultCashAccountId { get; set; }
+        public int? DefaultInventoryAccountId { get; set; }
+        public int? DefaultPurchaseReturnsAccountId { get; set; }
+        public int? DefaultCogsAccountId { get; set; }
+        public int? DefaultPayrollExpenseAccountId { get; set; }
+        public int? DefaultPayrollAccrualAccountId { get; set; }
+        public int? DefaultVatAccountId { get; set; }
+        public int? DefaultInventoryAdjustmentAccountId { get; set; }
 
         // --- الإعدادات العامة ---
         public string? DefaultLanguage { get; set; }
         public string? DefaultDateFormat { get; set; }
-        public string? BaseCurrency { get; set; }
+        public int? DefaultCurrencyId { get; set; }
+        public virtual Currency? DefaultCurrency { get; set; }
+        public InventoryCostingMethod DefaultCostingMethod { get; set; } = InventoryCostingMethod.WeightedAverage;
 
-        // --- بداية التحديث: إضافة حقول إعدادات المستخدمين ---
+        // --- بداية الإضافة: إعدادات النسخ الاحتياطي التلقائي ---
+        public bool IsAutoBackupEnabled { get; set; } = true; // تفعيل الميزة افتراضياً
+        public int BackupsToKeep { get; set; } = 7; // الاحتفاظ بآخر 7 نسخ افتراضياً
+        // --- نهاية الإضافة ---
+
+        // --- إعدادات المستخدمين ---
         public int MinPasswordLength { get; set; } = 8;
         public bool RequireUppercase { get; set; } = true;
         public bool RequireLowercase { get; set; } = true;
         public bool RequireDigit { get; set; } = true;
         public bool RequireSpecialChar { get; set; } = false;
-        public int PasswordExpiryDays { get; set; } = 90; // 0 for no expiry
+        public int PasswordExpiryDays { get; set; } = 90;
         public int FailedLoginLockoutAttempts { get; set; } = 5;
         public int? DefaultRoleId { get; set; }
-        // --- نهاية التحديث ---
-
     }
 }

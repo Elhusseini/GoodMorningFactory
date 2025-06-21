@@ -47,6 +47,8 @@
                 <DataGridTextColumn Header="مدين" Binding="{Binding Debit, StringFormat=N2}" Width="*"/>
                 <DataGridTextColumn Header="دائن" Binding="{Binding Credit, StringFormat=N2}" Width="*"/>
                 <DataGridTextColumn Header="الوصف" Binding="{Binding Description}" Width="2*"/>
+                <DataGridComboBoxColumn x:Name="CostCenterColumn" Header="مركز التكلفة" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValueBinding="{Binding CostCenterId}" Width="*"/>
+
             </DataGrid.Columns>
         </DataGrid>
 

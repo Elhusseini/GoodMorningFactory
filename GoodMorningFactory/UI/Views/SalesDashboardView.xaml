@@ -1,101 +1,226 @@
-﻿<!-- UI/Views/SalesDashboardView.xaml -->
-<!-- *** الكود الكامل لتصميم لوحة معلومات المبيعات مع جميع الإضافات *** -->
-<UserControl x:Class="GoodMorningFactory.UI.Views.SalesDashboardView"
+﻿<UserControl x:Class="GoodMorningFactory.UI.Views.SalesDashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
              mc:Ignorable="d" 
-             d:DesignHeight="700" d:DesignWidth="1200"
+             d:DesignHeight="700" d:DesignWidth="1000"
              Background="#F5F5F5" FlowDirection="RightToLeft">
+
     <UserControl.Resources>
-        <Style x:Key="FunnelBorderStyle" TargetType="Border">
-            <Setter Property="BorderBrush" Value="DodgerBlue"/>
-            <Setter Property="BorderThickness" Value="0,0,0,2"/>
+        <!-- تصميم موحد للبطاقات -->
+        <Style TargetType="Border" x:Key="CardStyle">
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect ShadowDepth="1" Color="#E0E0E0" Opacity="0.8" BlurRadius="10"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- تصميم موحد لعناوين الأقسام -->
+        <Style TargetType="TextBlock" x:Key="SectionHeaderStyle">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="Margin" Value="10,15,10,5"/>
+        </Style>
+
+        <!-- تصميم موحد لأزرار الإجراءات السريعة (مُحسَّن) -->
+        <Style TargetType="Button" x:Key="QuickActionButtonStyle">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FFFFFF" Offset="0.0"/>
+                        <GradientStop Color="#F0F0F0" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#DDD"/>
             <Setter Property="Padding" Value="10"/>
-            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Margin" Value="0,5"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#FDFDFD" Offset="0.0"/>
+                                            <GradientStop Color="#E8E8E8" Offset="1.0"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E0E0E0"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid Margin="10">
+        <Grid Margin="15">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="1.5*"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- عنوان الشاشة -->
-            <TextBlock Grid.Row="0" Text="لوحة معلومات المبيعات" FontSize="24" FontWeight="Bold" Margin="5"/>
-
-            <!-- الجزء العلوي: بطاقات المؤشرات -->
-            <UniformGrid Rows="1" Columns="4" Grid.Row="1">
-                <Border Style="{StaticResource DashboardCardStyle}" Background="#007BFF">
+            <!-- ==================== مؤشرات الأداء الرئيسية (KPIs) ==================== -->
+            <UniformGrid Grid.Row="0" Grid.ColumnSpan="2" Columns="4">
+                <Border Style="{StaticResource CardStyle}" Background="#03A9F4">
                     <StackPanel>
-                        <TextBlock Text="إجمالي مبيعات الشهر" Style="{StaticResource DashboardCardTitleStyle}"/>
-                        <TextBlock Text="{Binding TotalSalesThisMonth, StringFormat={}{0:C}}" Style="{StaticResource DashboardCardValueStyle}"/>
+                        <TextBlock Text="إجمالي المبيعات (هذا الشهر)" Foreground="White" FontSize="14"/>
+                        <TextBlock Text="{Binding TotalSalesThisMonthFormatted}" Foreground="White" FontSize="28" FontWeight="Bold" Margin="0,5,0,0"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource DashboardCardStyle}" Background="#28A745">
+                <Border Style="{StaticResource CardStyle}" Background="#4CAF50">
                     <StackPanel>
-                        <TextBlock Text="أوامر البيع الجديدة (الشهر)" Style="{StaticResource DashboardCardTitleStyle}"/>
-                        <TextBlock Text="{Binding NewOrdersThisMonth}" Style="{StaticResource DashboardCardValueStyle}"/>
+                        <TextBlock Text="الطلبات الجديدة (هذا الشهر)" Foreground="White" FontSize="14"/>
+                        <TextBlock Text="{Binding NewOrdersThisMonth}" Foreground="White" FontSize="28" FontWeight="Bold" Margin="0,5,0,0"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource DashboardCardStyle}" Background="#6f42c1">
+                <Border Style="{StaticResource CardStyle}" Background="#673AB7">
                     <StackPanel>
-                        <TextBlock Text="متوسط قيمة الأمر" Style="{StaticResource DashboardCardTitleStyle}"/>
-                        <TextBlock Text="{Binding AverageOrderValue, StringFormat={}{0:C}}" Style="{StaticResource DashboardCardValueStyle}"/>
+                        <TextBlock Text="متوسط قيمة الطلب" Foreground="White" FontSize="14"/>
+                        <TextBlock Text="{Binding AverageOrderValueFormatted}" Foreground="White" FontSize="28" FontWeight="Bold" Margin="0,5,0,0"/>
                     </StackPanel>
                 </Border>
-                <Border Style="{StaticResource DashboardCardStyle}" Background="#FFC107">
+                <Border Style="{StaticResource CardStyle}" Background="#FFC107">
                     <StackPanel>
-                        <TextBlock Text="عروض أسعار للمتابعة" Style="{StaticResource DashboardCardTitleStyle}"/>
-                        <TextBlock Text="{Binding FollowUpQuotationsCount}" Style="{StaticResource DashboardCardValueStyle}"/>
+                        <TextBlock Text="عروض الأسعار للمتابعة" Foreground="White" FontSize="14"/>
+                        <TextBlock Text="{Binding FollowUpQuotationsCount}" Foreground="White" FontSize="28" FontWeight="Bold" Margin="0,5,0,0"/>
                     </StackPanel>
                 </Border>
             </UniformGrid>
 
-            <!-- الجزء الأوسط: الرسوم البيانية -->
-            <Grid Grid.Row="2" Margin="0,10,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="3*"/>
-                    <ColumnDefinition Width="2*"/>
-                </Grid.ColumnDefinitions>
-
-                <GroupBox Header="أداء المبيعات الشهري (آخر 6 أشهر)" Grid.Column="0" Margin="5" FontSize="14" FontWeight="Bold">
-                    <lvc:CartesianChart MinHeight="250" Series="{Binding MonthlySalesSeries}" LegendLocation="None">
-                        <lvc:CartesianChart.AxisX>
-                            <lvc:Axis Labels="{Binding MonthLabels}"/>
-                        </lvc:CartesianChart.AxisX>
+            <!-- ==================== الرسوم البيانية (العمود الأيسر) ==================== -->
+            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,10,0,0">
+                <TextBlock Text="المبيعات الشهرية (آخر 6 أشهر)" Style="{StaticResource SectionHeaderStyle}"/>
+                <Border Style="{StaticResource CardStyle}">
+                    <lvc:CartesianChart Series="{Binding MonthlySalesSeries}" LegendLocation="Bottom" Height="250">
                         <lvc:CartesianChart.AxisY>
-                            <lvc:Axis x:Name="SalesAxisY" Title="إجمالي المبيعات"/>
+                            <lvc:Axis x:Name="SalesAxisY" Title="المبيعات" MinValue="0"/>
                         </lvc:CartesianChart.AxisY>
-                    </lvc:CartesianChart>
-                </GroupBox>
-
-                <GroupBox Header="المبيعات حسب فئة المنتج" Grid.Column="1" Margin="5" FontSize="14" FontWeight="Bold">
-                    <lvc:CartesianChart MinHeight="250" Series="{Binding SalesByCategorySeries}" LegendLocation="None">
                         <lvc:CartesianChart.AxisX>
-                            <lvc:Axis Labels="{Binding CategoryLabels}"/>
+                            <lvc:Axis Title="الشهر" Labels="{Binding MonthLabels}"/>
                         </lvc:CartesianChart.AxisX>
-                        <lvc:CartesianChart.AxisY>
-                            <lvc:Axis x:Name="CategorySalesAxisY" Title="إجمالي المبيعات"/>
-                        </lvc:CartesianChart.AxisY>
                     </lvc:CartesianChart>
-                </GroupBox>
-            </Grid>
+                </Border>
 
-            <!-- الجزء السفلي: القوائم والاختصارات -->
-            <Grid Grid.Row="3" Margin="0,10,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+                <TextBlock Text="المبيعات حسب الفئة (هذا العام)" Style="{StaticResource SectionHeaderStyle}"/>
+                <Border Style="{StaticResource CardStyle}">
+                    <lvc:CartesianChart Series="{Binding SalesByCategorySeries}" LegendLocation="Right" Height="250">
+                        <lvc:CartesianChart.AxisY>
+                            <lvc:Axis x:Name="CategorySalesAxisY" Title="المبيعات" MinValue="0"/>
+                        </lvc:CartesianChart.AxisY>
+                        <lvc:CartesianChart.AxisX>
+                            <lvc:Axis Title="الفئة" Labels="{Binding CategoryLabels}"/>
+                        </lvc:CartesianChart.AxisX>
+                    </lvc:CartesianChart>
+                </Border>
+            </StackPanel>
 
-                <GroupBox Header="أفضل العملاء مبيعاً" Grid.Column="0" Margin="5" FontSize="14" FontWeight="Bold">
+            <!-- ==================== الأعمدة الجانبية (العمود الأيمن) ==================== -->
+            <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,0">
+
+                <!-- قمع المبيعات (تنسيق محسن) -->
+                <TextBlock Text="قمع المبيعات (هذا الشهر)" Style="{StaticResource SectionHeaderStyle}"/>
+                <Border Style="{StaticResource CardStyle}" Padding="15">
+                    <StackPanel>
+                        <!-- عروض الأسعار -->
+                        <Grid Margin="0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="عروض الأسعار" VerticalAlignment="Center" Foreground="#555"/>
+                            <TextBlock Grid.Column="1" Text="{Binding QuotationsCount}" FontWeight="Bold" Foreground="SteelBlue" FontSize="16"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding OrdersCount}" Maximum="{Binding QuotationsCount}" Height="4" BorderThickness="0" Background="#E3F0FA" Foreground="#03A9F4"/>
+
+                        <!-- أوامر البيع -->
+                        <Grid Margin="0,10,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="أوامر البيع" VerticalAlignment="Center" Foreground="#555"/>
+                            <TextBlock Grid.Column="1" Text="{Binding OrdersCount}" FontWeight="Bold" Foreground="SteelBlue" FontSize="16"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding InvoicesCount}" Maximum="{Binding OrdersCount}" Height="4" BorderThickness="0" Background="#E3F0FA" Foreground="#4CAF50"/>
+
+                        <!-- الفواتير -->
+                        <Grid Margin="0,10,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="الفواتير" VerticalAlignment="Center" Foreground="#555"/>
+                            <TextBlock Grid.Column="1" Text="{Binding InvoicesCount}" FontWeight="Bold" Foreground="SteelBlue" FontSize="16"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- إجراءات سريعة -->
+                <TextBlock Text="إجراءات سريعة" Style="{StaticResource SectionHeaderStyle}"/>
+                <Border Style="{StaticResource CardStyle}" Padding="15">
+                    <StackPanel>
+                        <Button Style="{StaticResource QuickActionButtonStyle}" Click="AddCustomer_Click">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE716;" VerticalAlignment="Center" FontSize="16" Foreground="#03A9F4"/>
+                                <TextBlock Grid.Column="1" Text="إضافة عميل جديد" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            </Grid>
+                        </Button>
+                        <Button Style="{StaticResource QuickActionButtonStyle}" Click="AddQuotation_Click">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE7C3;" VerticalAlignment="Center" FontSize="16" Foreground="#FFC107"/>
+                                <TextBlock Grid.Column="1" Text="إنشاء عرض سعر" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            </Grid>
+                        </Button>
+                        <Button Style="{StaticResource QuickActionButtonStyle}" Click="AddOrder_Click">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE7BF;" VerticalAlignment="Center" FontSize="16" Foreground="#4CAF50"/>
+                                <TextBlock Grid.Column="1" Text="إنشاء أمر بيع" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            </Grid>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- أفضل العملاء -->
+                <TextBlock Text="أفضل العملاء (هذا العام)" Style="{StaticResource SectionHeaderStyle}"/>
+                <Border Style="{StaticResource CardStyle}" Padding="15">
                     <ItemsControl ItemsSource="{Binding TopCustomers}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -103,51 +228,8 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                </GroupBox>
-                <GroupBox Header="أفضل المنتجات مبيعاً" Grid.Column="1" Margin="5" FontSize="14" FontWeight="Bold">
-                    <ItemsControl ItemsSource="{Binding TopProducts}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" Margin="5" FontSize="14"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </GroupBox>
-
-                <StackPanel Grid.Column="2">
-                    <!-- قمع المبيعات -->
-                    <GroupBox Header="قمع المبيعات (هذا الشهر)" Margin="5" FontSize="14" FontWeight="Bold">
-                        <StackPanel Margin="10">
-                            <Border Style="{StaticResource FunnelBorderStyle}">
-                                <Grid>
-                                    <TextBlock Text="عروض الأسعار"/>
-                                    <TextBlock Text="{Binding QuotationsCount}" HorizontalAlignment="Left"/>
-                                </Grid>
-                            </Border>
-                            <Border Style="{StaticResource FunnelBorderStyle}" Margin="20,5,5,5">
-                                <Grid>
-                                    <TextBlock Text="أوامر البيع"/>
-                                    <TextBlock Text="{Binding OrdersCount}" HorizontalAlignment="Left"/>
-                                </Grid>
-                            </Border>
-                            <Border Style="{StaticResource FunnelBorderStyle}" Margin="40,5,5,5">
-                                <Grid>
-                                    <TextBlock Text="الفواتير"/>
-                                    <TextBlock Text="{Binding InvoicesCount}" HorizontalAlignment="Left"/>
-                                </Grid>
-                            </Border>
-                        </StackPanel>
-                    </GroupBox>
-                    <!-- اختصارات سريعة -->
-                    <GroupBox Header="اختصارات سريعة" Margin="5" FontSize="14" FontWeight="Bold">
-                        <StackPanel>
-                            <Button Content="➕ إضافة عميل جديد" Margin="5" Padding="5" Click="AddCustomer_Click"/>
-                            <Button Content="➕ إنشاء عرض سعر جديد" Margin="5" Padding="5" Click="AddQuotation_Click"/>
-                            <Button Content="➕ إنشاء أمر بيع جديد" Margin="5" Padding="5" Click="AddOrder_Click"/>
-                        </StackPanel>
-                    </GroupBox>
-                </StackPanel>
-            </Grid>
+                </Border>
+            </StackPanel>
         </Grid>
     </ScrollViewer>
 </UserControl>

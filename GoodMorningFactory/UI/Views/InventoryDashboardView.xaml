@@ -24,7 +24,7 @@
                 <Border Style="{StaticResource DashboardCardStyle}" Background="#17A2B8">
                     <StackPanel>
                         <TextBlock Text="إجمالي قيمة المخزون" Style="{StaticResource DashboardCardTitleStyle}"/>
-                        <TextBlock Text="{Binding TotalInventoryValue, StringFormat=C}" Style="{StaticResource DashboardCardValueStyle}"/>
+                        <TextBlock Text="{Binding TotalInventoryValueFormatted}" FontSize="28" FontWeight="Bold" Foreground="White" Margin="0,5,0,0"/>
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource DashboardCardStyle}" Background="#FFC107">

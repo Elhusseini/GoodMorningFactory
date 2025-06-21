@@ -1,15 +1,15 @@
 ﻿// UI/Views/ChartOfAccountsView.xaml.cs
-// *** تحديث: تم استكمال منطق عرض الأرصدة والحذف الآمن ***
+// *** تحديث: تم إصلاح الخلل الأمني المتعلق بالصلاحيات ***
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using GoodMorningFactory.UI.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using GoodMorningFactory.Core.Services; // <-- إضافة مهمة
 
 namespace GoodMorningFactory.UI.Views
 {
@@ -18,108 +18,152 @@ namespace GoodMorningFactory.UI.Views
         public ChartOfAccountsView()
         {
             InitializeComponent();
-            LoadAccounts();
+            ApplyPermissions(); // <-- بداية الإصلاح: استدعاء دالة تطبيق الصلاحيات
+            LoadData();
         }
 
-        private void LoadAccounts()
+        // --- بداية الإصلاح: إضافة دالة لتطبيق الصلاحيات ---
+        private void ApplyPermissions()
         {
-            try
+            // التحقق مما إذا كان المستخدم يمتلك صلاحية "إدارة شجرة الحسابات"
+            bool canManage = PermissionsService.CanAccess("Financials.ChartOfAccounts.Manage");
+
+            // تفعيل أو تعطيل الأزرار بناءً على نتيجة التحقق
+            AddButton.IsEnabled = canManage;
+            EditButton.IsEnabled = canManage;
+            DeleteButton.IsEnabled = canManage;
+        }
+        // --- نهاية الإصلاح ---
+
+        public void LoadData()
+        {
+            using (var db = new DatabaseContext())
             {
-                using (var db = new DatabaseContext())
+                var allAccounts = db.Accounts.ToList();
+                var accountLookup = allAccounts.ToDictionary(a => a.Id, a => new AccountViewModel(a));
+                var rootNodes = new ObservableCollection<AccountViewModel>();
+
+                foreach (var account in allAccounts)
                 {
-                    var accounts = db.Accounts.ToList();
-                    var transactions = db.JournalVoucherItems.ToList();
-                    var accountViewModels = new List<AccountViewModel>();
-
-                    // --- بداية التحديث: حساب الرصيد لكل حساب ---
-                    foreach (var account in accounts)
+                    if (account.ParentAccountId.HasValue && accountLookup.ContainsKey(account.ParentAccountId.Value))
                     {
-                        decimal balance = transactions.Where(t => t.AccountId == account.Id).Sum(t => t.Debit - t.Credit);
-                        accountViewModels.Add(new AccountViewModel(account) { Balance = balance });
+                        accountLookup[account.ParentAccountId.Value].Children.Add(accountLookup[account.Id]);
                     }
-                    // --- نهاية التحديث ---
-
-                    var dictionary = accountViewModels.ToDictionary(vm => vm.Account.Id);
-                    var rootAccounts = new ObservableCollection<AccountViewModel>();
-
-                    foreach (var vm in accountViewModels)
+                    else
                     {
-                        if (vm.Account.ParentAccountId.HasValue && dictionary.ContainsKey(vm.Account.ParentAccountId.Value))
-                        {
-                            dictionary[vm.Account.ParentAccountId.Value].Children.Add(vm);
-                        }
-                        else
-                        {
-                            rootAccounts.Add(vm);
-                        }
+                        rootNodes.Add(accountLookup[account.Id]);
                     }
-                    AccountsTreeView.ItemsSource = rootAccounts;
                 }
+                AccountsTreeView.ItemsSource = rootNodes;
             }
-            catch (Exception ex) { MessageBox.Show($"فشل تحميل دليل الحسابات: {ex.Message}"); }
         }
 
-        private void AddAccount_Click(object sender, RoutedEventArgs e)
+        private void LoadLedgerForAccount(int accountId)
+        {
+            var selectedVm = AccountsTreeView.SelectedItem as AccountViewModel;
+            LedgerHeader.Text = $"دفتر الأستاذ للحساب: {selectedVm?.DisplayName ?? ""}";
+
+            using (var db = new DatabaseContext())
+            {
+                var ledgerEntries = db.JournalVoucherItems
+                    .Include(i => i.JournalVoucher)
+                    .Where(i => i.AccountId == accountId)
+                    .OrderBy(i => i.JournalVoucher.VoucherDate)
+                    .ToList();
+
+                var ledgerViewModels = new List<LedgerEntryViewModel>();
+                decimal currentBalance = 0;
+
+                foreach (var entry in ledgerEntries)
+                {
+                    currentBalance += entry.Debit - entry.Credit;
+                    ledgerViewModels.Add(new LedgerEntryViewModel
+                    {
+                        Date = entry.JournalVoucher.VoucherDate,
+                        Reference = entry.JournalVoucher.VoucherNumber,
+                        Description = entry.JournalVoucher.Description,
+                        Debit = entry.Debit,
+                        Credit = entry.Credit,
+                        Balance = currentBalance
+                    });
+                }
+                LedgerDataGrid.ItemsSource = ledgerViewModels;
+            }
+        }
+
+        private void AccountsTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is AccountViewModel selectedVM)
+            {
+                LoadLedgerForAccount(selectedVM.Id);
+            }
+            else
+            {
+                LedgerDataGrid.ItemsSource = null;
+                LedgerHeader.Text = "دفتر الأستاذ العام";
+            }
+        }
+
+        private void AddButton_Click(object sender, RoutedEventArgs e)
         {
             var addWindow = new AddEditAccountWindow();
-            if (addWindow.ShowDialog() == true) { LoadAccounts(); }
+            if (addWindow.ShowDialog() == true)
+            {
+                LoadData();
+            }
         }
 
-        private void EditAccount_Click(object sender, RoutedEventArgs e)
+        private void EditButton_Click(object sender, RoutedEventArgs e)
         {
             if (AccountsTreeView.SelectedItem is AccountViewModel selectedAccount)
             {
-                var editWindow = new AddEditAccountWindow(selectedAccount.Account.Id);
-                if (editWindow.ShowDialog() == true) { LoadAccounts(); }
+                var editWindow = new AddEditAccountWindow(selectedAccount.Id);
+                if (editWindow.ShowDialog() == true)
+                {
+                    LoadData();
+                }
             }
-            else { MessageBox.Show("يرجى تحديد حساب لتعديله."); }
+            else
+            {
+                MessageBox.Show("يرجى تحديد حساب لتعديله.", "تنبيه");
+            }
         }
 
-        // --- بداية التحديث: تفعيل منطق الحذف الآمن ---
-        private void DeleteAccount_Click(object sender, RoutedEventArgs e)
+        private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            if (AccountsTreeView.SelectedItem is AccountViewModel selectedVm)
+            if (AccountsTreeView.SelectedItem is AccountViewModel selectedAccount)
             {
-                var accountToDelete = selectedVm.Account;
-
-                // التحقق من وجود حسابات فرعية
-                if (selectedVm.Children.Any())
+                if (selectedAccount.Children.Any())
                 {
-                    MessageBox.Show("لا يمكن حذف هذا الحساب لأنه يحتوي على حسابات فرعية. يرجى حذف الحسابات الفرعية أولاً.", "عملية غير ممكنة", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("لا يمكن حذف هذا الحساب لأنه يحتوي على حسابات فرعية.", "خطأ");
                     return;
                 }
 
-                // التحقق من وجود حركات مالية
-                using (var db = new DatabaseContext())
-                {
-                    bool hasTransactions = db.JournalVoucherItems.Any(t => t.AccountId == accountToDelete.Id);
-                    if (hasTransactions)
-                    {
-                        MessageBox.Show("لا يمكن حذف هذا الحساب لوجود حركات مالية مرتبطة به. يمكنك جعله 'غير نشط' بدلاً من ذلك.", "عملية غير ممكنة", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-                }
-
-                var result = MessageBox.Show($"هل أنت متأكد من حذف الحساب '{accountToDelete.AccountName}' بشكل نهائي؟", "تأكيد الحذف", MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+                var result = MessageBox.Show($"هل أنت متأكد من حذف الحساب: {selectedAccount.DisplayName}؟", "تأكيد الحذف", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (result == MessageBoxResult.Yes)
                 {
-                    try
+                    using (var db = new DatabaseContext())
                     {
-                        using (var db = new DatabaseContext())
+                        if (db.JournalVoucherItems.Any(i => i.AccountId == selectedAccount.Id))
+                        {
+                            MessageBox.Show("لا يمكن حذف هذا الحساب لوجود حركات مرتبطة به. يمكنك جعله 'غير نشط'.", "خطأ");
+                            return;
+                        }
+
+                        var accountToDelete = db.Accounts.Find(selectedAccount.Id);
+                        if (accountToDelete != null)
                         {
                             db.Accounts.Remove(accountToDelete);
                             db.SaveChanges();
-                            LoadAccounts();
+                            LoadData();
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"فشل حذف الحساب: {ex.Message}", "خطأ");
                     }
                 }
             }
-            else { MessageBox.Show("يرجى تحديد حساب لحذفه."); }
+            else
+            {
+                MessageBox.Show("يرجى تحديد حساب لحذفه.", "تنبيه");
+            }
         }
-        // --- نهاية التحديث ---
     }
 }

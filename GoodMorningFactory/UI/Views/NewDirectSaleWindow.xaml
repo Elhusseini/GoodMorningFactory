@@ -5,6 +5,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:s="clr-namespace:GoodMorningFactory.Core.Services"
         mc:Ignorable="d"
         Title="فاتورة بيع مباشرة" Height="700" Width="1100"
         WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
@@ -41,12 +42,39 @@
                     <TextBox x:Name="SearchProductTextBox" Width="300" KeyUp="SearchProductTextBox_KeyUp"/>
                 </StackPanel>
 
+                <!-- في قسم DataGrid (تعديل عمود سعر الوحدة والإجمالي) -->
                 <DataGrid x:Name="SaleItemsDataGrid" Grid.Row="1" Margin="5" CanUserAddRows="False" AutoGenerateColumns="False">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="المنتج" Binding="{Binding ProductName}" Width="3*" IsReadOnly="True"/>
-                        <DataGridTextColumn Header="سعر الوحدة" Binding="{Binding UnitPrice, StringFormat=N2}" Width="*"/>
+                        <DataGridTextColumn Header="سعر الوحدة" Width="*" IsReadOnly="True">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text">
+                                        <Setter.Value>
+                                            <MultiBinding StringFormat="{}{0:N2} {1}">
+                                                <Binding Path="UnitPrice"/>
+                                                <Binding Source="{x:Static s:AppSettings.DefaultCurrencySymbol}"/>
+                                            </MultiBinding>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                         <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity}" Width="*"/>
-                        <DataGridTextColumn Header="الإجمالي" Binding="{Binding Subtotal, StringFormat=N2}" Width="*" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="الإجمالي" Width="*" IsReadOnly="True">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text">
+                                        <Setter.Value>
+                                            <MultiBinding StringFormat="{}{0:N2} {1}">
+                                                <Binding Path="Subtotal"/>
+                                                <Binding Source="{x:Static s:AppSettings.DefaultCurrencySymbol}"/>
+                                            </MultiBinding>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                         <DataGridTemplateColumn>
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -61,7 +89,11 @@
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
             <TextBlock Text="الإجمالي:" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-            <TextBlock x:Name="TotalAmountTextBlock" Text="0.00" FontSize="16" FontWeight="Bold" Foreground="Blue" Margin="10,0,20,0" VerticalAlignment="Center"/>
+            <!-- في قسم الإجمالي النهائي (أسفل النافذة) -->
+            <TextBlock x:Name="TotalAmountTextBlock" FontSize="16" FontWeight="Bold" Foreground="Blue" Margin="10,0,20,0" VerticalAlignment="Center">
+    <Run Text="{Binding TotalAmount, StringFormat=N2}"/>
+    <Run Text="{x:Static s:AppSettings.DefaultCurrencySymbol}"/>
+            </TextBlock>
             <TextBlock Text="المبلغ المدفوع:" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
             <TextBox x:Name="AmountPaidTextBox" Width="100" Margin="5,0,20,0" VerticalAlignment="Center"/>
             <Button Content="💾 حفظ الفاتورة" Width="120" Margin="20,0,5,0" Padding="8" Click="SaveButton_Click"/>

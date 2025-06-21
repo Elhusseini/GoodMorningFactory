@@ -1,12 +1,47 @@
 ﻿<!-- UI/Views/PurchaseOrderPrintTemplate.xaml -->
-<!-- *** ملف جديد: قالب تصميم أمر الشراء للطباعة *** -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <FlowDocument x:Key="PurchaseOrder" PagePadding="50" ColumnWidth="800" FlowDirection="RightToLeft" FontFamily="Calibri" FontSize="12">
-        <Paragraph TextAlignment="Center" Margin="0,0,0,20">
-            <Run Text="أمر شراء" FontSize="24" FontWeight="Bold"/>
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:s="clr-namespace:GoodMorningFactory.Core.Services">
+    <FlowDocument x:Key="PurchaseOrder" PagePadding="40" ColumnWidth="800" FlowDirection="RightToLeft" FontFamily="Arial" FontSize="13">
+        <!-- Header -->
+        <Table>
+            <Table.Columns>
+                <TableColumn Width="3*"/>
+                <TableColumn Width="1.2*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell>
+                        <Paragraph FontSize="26" FontWeight="Bold" Foreground="#2a4d7a">
+                            <Run x:Name="CompanyNameTextBlock" Text="اسم الشركة"/>
+                        </Paragraph>
+                        <Paragraph>
+                            <Run x:Name="CompanyAddressTextBlock" Text="عنوان الشركة"/>
+                        </Paragraph>
+                        <Paragraph>
+                            <Run x:Name="CompanyPhoneTextBlock" Text="رقم هاتف الشركة"/>
+                        </Paragraph>
+                        <Paragraph>
+                            <Run x:Name="CompanyTaxNumberTextBlock" Text="الرقم الضريبي"/>
+                        </Paragraph>
+                    </TableCell>
+                    <TableCell>
+                        <BlockUIContainer>
+                            <Border BorderBrush="#2a4d7a" BorderThickness="1" CornerRadius="8" Padding="4" Margin="0,0,0,8">
+                                <Image x:Name="CompanyLogoImage" Height="80" HorizontalAlignment="Center"/>
+                            </Border>
+                        </BlockUIContainer>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <!-- Order Title -->
+        <Paragraph TextAlignment="Center" Margin="0,20,0,0">
+            <Run Text="أمر شراء" FontSize="22" FontWeight="Bold" Foreground="#2a4d7a"/>
         </Paragraph>
 
+        <!-- Supplier & Order Info -->
         <Table Margin="0,20,0,10">
             <Table.Columns>
                 <TableColumn Width="*"/>
@@ -15,76 +50,134 @@
             <TableRowGroup>
                 <TableRow>
                     <TableCell>
+                        <Paragraph FontWeight="Bold">معلومات المورد:</Paragraph>
                         <Paragraph>
-                            <Run Text="رقم أمر الشراء: "/>
-                            <Run x:Name="PONumberRun" FontWeight="Bold"/>
+                            <Run Text="اسم المورد: "/>
+                            <Run x:Name="SupplierNameRun" FontWeight="Bold"/>
+                        </Paragraph>
+                        <Paragraph>
+                            <Run Text="الرقم الضريبي: "/>
+                            <Run x:Name="SupplierTaxNumberRun"/>
+                        </Paragraph>
+                        <Paragraph>
+                            <Run Text="العنوان: "/>
+                            <Run x:Name="SupplierAddressRun"/>
                         </Paragraph>
                     </TableCell>
-                    <TableCell TextAlignment="Left">
-                        <Paragraph>
+                    <TableCell>
+                        <Paragraph FontWeight="Bold" TextAlignment="Left">
+                            <Run Text="رقم الأمر: "/>
+                            <Run x:Name="PONumberRun" FontWeight="Bold"/>
+                        </Paragraph>
+                        <Paragraph TextAlignment="Left">
                             <Run Text="تاريخ الأمر: "/>
                             <Run x:Name="OrderDateRun" FontWeight="Bold"/>
                         </Paragraph>
-                    </TableCell>
-                </TableRow>
-                <TableRow>
-                    <TableCell>
-                        <Paragraph>
-                            <Run Text="المورد: "/>
-                            <Run x:Name="SupplierNameRun" FontWeight="Bold"/>
-                        </Paragraph>
-                    </TableCell>
-                    <TableCell TextAlignment="Left">
-                        <Paragraph>
+                        <Paragraph TextAlignment="Left">
                             <Run Text="تاريخ التسليم المتوقع: "/>
-                            <Run x:Name="DeliveryDateRun" FontWeight="Bold"/>
+                            <Run x:Name="DeliveryDateRun"/>
                         </Paragraph>
                     </TableCell>
                 </TableRow>
             </TableRowGroup>
         </Table>
 
-        <Table CellSpacing="0" BorderBrush="Black" BorderThickness="1" Margin="0,20,0,0">
+        <!-- Items Table -->
+        <Table CellSpacing="0" BorderBrush="#2a4d7a" BorderThickness="1" Margin="0,10,0,0">
             <Table.Columns>
-                <TableColumn Width="4*"/>
+                <TableColumn Width="0.7*"/>
+                <TableColumn Width="3*"/>
+                <TableColumn Width="1.2*"/>
                 <TableColumn Width="1.5*"/>
-                <TableColumn Width="1.5*"/>
-                <TableColumn Width="2*"/>
+                <TableColumn Width="1.7*"/>
             </Table.Columns>
             <TableRowGroup x:Name="ItemsTableRowGroup">
-                <TableRow Background="LightGray" FontWeight="Bold">
-                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                <TableRow Background="#e3eaf6" FontWeight="Bold">
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="0,0,1,1" Padding="4" TextAlignment="Center">
+                        <Paragraph>#</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="0,0,1,1" Padding="4" TextAlignment="Center">
                         <Paragraph>المنتج/المادة</Paragraph>
                     </TableCell>
-                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="0,0,1,1" Padding="4" TextAlignment="Center">
                         <Paragraph>الكمية</Paragraph>
                     </TableCell>
-                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="0,0,1,1" Padding="4" TextAlignment="Center">
                         <Paragraph>سعر الوحدة</Paragraph>
                     </TableCell>
-                    <TableCell BorderBrush="Black" BorderThickness="0,0,0,1" Padding="5">
+                    <TableCell BorderBrush="#2a4d7a" BorderThickness="0,0,0,1" Padding="4" TextAlignment="Center">
                         <Paragraph>الإجمالي الفرعي</Paragraph>
                     </TableCell>
                 </TableRow>
+                <!-- صفوف المنتجات ستضاف برمجياً -->
             </TableRowGroup>
         </Table>
 
+        <!-- Totals Section -->
         <Table Margin="0,20,0,0">
             <Table.Columns>
-                <TableColumn Width="*"/>
-                <TableColumn Width="Auto"/>
+                <TableColumn Width="3*"/>
+                <TableColumn Width="2*"/>
             </Table.Columns>
             <TableRowGroup>
                 <TableRow>
-                    <TableCell/>
                     <TableCell>
                         <Paragraph FontWeight="Bold">
-                            <Run Text="الإجمالي النهائي: "/>
-                            <Run x:Name="TotalAmountRun"/>
+                            <Run Text="فقط: "/>
+                            <Run x:Name="TotalInWordsRun" />
                         </Paragraph>
+                    </TableCell>
+                    <TableCell>
+                        <Table CellSpacing="0" BorderBrush="#2a4d7a" BorderThickness="1" Margin="0">
+                            <Table.Columns>
+                                <TableColumn Width="2.5*"/>
+                                <TableColumn Width="1.2*"/>
+                            </Table.Columns>
+                            <TableRowGroup>
+                                <TableRow>
+                                    <TableCell Padding="4">
+                                        <Paragraph FontWeight="Bold">الإجمالي النهائي:</Paragraph>
+                                    </TableCell>
+                                    <TableCell Padding="4">
+                                        <Paragraph TextAlignment="Left" FontWeight="Bold">
+                                            <Run x:Name="TotalAmountRun"/>
+                                            <Run Text="{x:Static s:AppSettings.DefaultCurrencySymbol}"/>
+                                        </Paragraph>
+                                    </TableCell>
+                                </TableRow>
+                            </TableRowGroup>
+                        </Table>
+                    </TableCell>
+                </TableRow>
+
+                <TableRow>
+                    <TableCell ColumnSpan="2" Padding="0,30,0,0">
+                        <Table>
+                            <Table.Columns>
+                                <TableColumn Width="*"/>
+                                <TableColumn Width="*"/>
+                            </Table.Columns>
+                            <TableRowGroup>
+                                <TableRow>
+                                    <TableCell TextAlignment="Center">
+                                        <Paragraph FontWeight="Bold">توقيع المورد</Paragraph>
+                                        <Paragraph>.........................</Paragraph>
+                                    </TableCell>
+                                    <TableCell TextAlignment="Center">
+                                        <Paragraph FontWeight="Bold">الختم والتوقيع</Paragraph>
+                                        <Paragraph>.........................</Paragraph>
+                                    </TableCell>
+                                </TableRow>
+                            </TableRowGroup>
+                        </Table>
                     </TableCell>
                 </TableRow>
             </TableRowGroup>
         </Table>
+
+        <!-- Footer -->
+        <Paragraph TextAlignment="Center" FontSize="11" Margin="0,20,0,0" Foreground="#2a4d7a">
+            <Run Text="نشكركم على تعاونكم"/>
+        </Paragraph>
     </FlowDocument>
 </ResourceDictionary>

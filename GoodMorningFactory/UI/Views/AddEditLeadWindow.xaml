@@ -1,0 +1,24 @@
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditLeadWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="إضافة عميل محتمل" Height="450" Width="400"
+        WindowStartupLocation="CenterScreen" FlowDirection="RightToLeft">
+    <StackPanel Margin="15">
+        <Label Content="اسم الشركة (*):"/>
+        <TextBox x:Name="CompanyNameTextBox"/>
+        <Label Content="شخص الاتصال:"/>
+        <TextBox x:Name="ContactPersonTextBox"/>
+        <Label Content="البريد الإلكتروني:"/>
+        <TextBox x:Name="EmailTextBox"/>
+        <Label Content="رقم الهاتف:"/>
+        <TextBox x:Name="PhoneNumberTextBox"/>
+        <Label Content="الحالة (*):"/>
+        <ComboBox x:Name="StatusComboBox" SelectedValuePath="Value" DisplayMemberPath="Description"/>
+        <Label Content="الموظف المسؤول:"/>
+        <ComboBox x:Name="AssignedToUserComboBox" DisplayMemberPath="Username" SelectedValuePath="Id"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="حفظ" IsDefault="True" Click="SaveButton_Click"/>
+            <Button Content="إلغاء" IsCancel="True" Margin="10,0,0,0"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

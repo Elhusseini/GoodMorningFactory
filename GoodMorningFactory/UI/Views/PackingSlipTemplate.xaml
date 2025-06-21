@@ -1,0 +1,120 @@
+﻿<!-- GoodMorning/UI/Views/PackingSlipTemplate.xaml -->
+<!-- تحديث: تم إعادة تصميم القالب بالكامل ليتناسق مع شكل الفاتورة -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <FlowDocument x:Key="PackingSlip" PagePadding="40" ColumnWidth="800" FlowDirection="RightToLeft" FontFamily="Arial">
+        <!-- الترويسة -->
+        <Table CellSpacing="0">
+            <Table.Columns>
+                <TableColumn Width="*"/>
+                <TableColumn Width="2*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell Padding="5">
+                        <BlockUIContainer>
+                            <Image x:Name="CompanyLogoImage" Height="80" Stretch="Uniform"/>
+                        </BlockUIContainer>
+                    </TableCell>
+                    <TableCell Padding="5">
+                        <Paragraph FontSize="24" FontWeight="Bold" TextAlignment="Left">
+                            <Run x:Name="CompanyNameRun">اسم الشركة</Run>
+                        </Paragraph>
+                        <Paragraph TextAlignment="Left">
+                            <Run x:Name="CompanyAddressRun">عنوان الشركة</Run>
+                        </Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <Paragraph FontSize="22" FontWeight="Bold" TextAlignment="Center" Margin="0,20,0,10">
+            بوليصة الشحن (Packing Slip)
+        </Paragraph>
+
+        <!-- بيانات الشحنة والشحن إلى -->
+        <Table CellSpacing="0" Margin="0,10,0,20">
+            <Table.Columns>
+                <TableColumn Width="*"/>
+                <TableColumn Width="*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell BorderBrush="SteelBlue" BorderThickness="1" Padding="10">
+                        <BlockUIContainer>
+                            <StackPanel>
+                                <TextBlock FontWeight="Bold" Margin="0,0,0,5">بيانات الشحن:</TextBlock>
+                                <TextBlock>رقم الشحنة: <Run x:Name="ShipmentNumberRun"/></TextBlock>
+                                <TextBlock>تاريخ الشحن: <Run x:Name="ShipmentDateRun"/></TextBlock>
+                                <TextBlock>أمر البيع: <Run x:Name="OrderNumberRun"/></TextBlock>
+                            </StackPanel>
+                        </BlockUIContainer>
+                    </TableCell>
+                    <TableCell BorderBrush="SteelBlue" BorderThickness="1" Padding="10">
+                        <BlockUIContainer>
+                            <StackPanel>
+                                <TextBlock FontWeight="Bold" Margin="0,0,0,5">الشحن إلى:</TextBlock>
+                                <TextBlock><Run x:Name="CustomerNameRun"/></TextBlock>
+                                <TextBlock><Run x:Name="ShippingAddressRun"/></TextBlock>
+                            </StackPanel>
+                        </BlockUIContainer>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <!-- جدول الأصناف -->
+        <Table CellSpacing="0">
+            <Table.Columns>
+                <TableColumn Width="0.7*"/>
+                <TableColumn Width="1.3*"/>
+                <TableColumn Width="3*"/>
+                <TableColumn Width="1*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow Background="#F0F0F0">
+                    <TableCell BorderBrush="SteelBlue" BorderThickness="1" Padding="12,8" FlowDirection="RightToLeft">
+                        <Paragraph TextAlignment="Center" FontWeight="Bold">#</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="SteelBlue" BorderThickness="1" Padding="12,8" FlowDirection="RightToLeft">
+                        <Paragraph TextAlignment="Center" FontWeight="Bold">كود الصنف</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="SteelBlue" BorderThickness="1" Padding="12,8" FlowDirection="RightToLeft">
+                        <Paragraph TextAlignment="Center" FontWeight="Bold">وصف الصنف</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="SteelBlue" BorderThickness="1" Padding="12,8" FlowDirection="RightToLeft">
+                        <Paragraph TextAlignment="Center" FontWeight="Bold">الكمية</Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+            <TableRowGroup x:Name="ItemsTableRowGroup">
+                <!-- سيتم إضافة الصفوف هنا من الكود -->
+            </TableRowGroup>
+        </Table>
+
+        <BlockUIContainer>
+            <Grid Margin="0,40,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="20,0">
+                    <TextBlock FontWeight="Bold" TextAlignment="Center">استلمت بواسطة:</TextBlock>
+                    <Border BorderBrush="SteelBlue" BorderThickness="0,0,0,1" Height="30" Margin="0,20,0,5"/>
+                    <TextBlock TextAlignment="Center">التوقيع</TextBlock>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="20,0">
+                    <TextBlock FontWeight="Bold" TextAlignment="Center">تم التجهيز بواسطة:</TextBlock>
+                    <Border BorderBrush="SteelBlue" BorderThickness="0,0,0,1" Height="30" Margin="0,20,0,5"/>
+                    <TextBlock TextAlignment="Center">التوقيع</TextBlock>
+                </StackPanel>
+            </Grid>
+        </BlockUIContainer>
+
+        <Paragraph Margin="0,40,0,0" TextAlignment="Center" FontStyle="Italic" FontSize="12">
+            شكراً لتعاملكم معنا!
+        </Paragraph>
+    </FlowDocument>
+
+</ResourceDictionary>

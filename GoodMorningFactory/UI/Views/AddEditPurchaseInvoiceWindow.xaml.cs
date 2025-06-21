@@ -1,9 +1,11 @@
 ﻿// UI/Views/AddEditPurchaseInvoiceWindow.xaml.cs
-// *** الكود الكامل للكود الخلفي لنافذة تسجيل فاتورة مورد مع جميع الإصلاحات ***
+// *** تحديث: تم إزالة منطق التحقق والإغلاق التلقائي ***
+using GoodMorningFactory.Core.Services;
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -17,91 +19,119 @@ namespace GoodMorningFactory.UI.Views
         public string ProductName { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
+        public decimal Subtotal => Quantity * UnitPrice;
+
         public event PropertyChangedEventHandler PropertyChanged;
-        // (Implementation of OnPropertyChanged)
+
+        protected void OnPropertyChanged(string name)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
     }
 
     public partial class AddEditPurchaseInvoiceWindow : Window
     {
         private int? _purchaseOrderId;
-        private int? _grnId;
-        private ObservableCollection<PurchaseInvoiceItemViewModel> _items = new ObservableCollection<PurchaseInvoiceItemViewModel>();
+        private readonly ObservableCollection<PurchaseInvoiceItemViewModel> _items = new ObservableCollection<PurchaseInvoiceItemViewModel>();
+        private List<int> _grnIdsToInvoice = new List<int>();
 
-        // --- بداية الإصلاح: تحديث المُنشئ ليقبل هوية مذكرة الاستلام ---
         public AddEditPurchaseInvoiceWindow(int? purchaseOrderId = null, int? grnId = null)
         {
             InitializeComponent();
             _purchaseOrderId = purchaseOrderId;
-            _grnId = grnId;
+
+            if (grnId.HasValue)
+            {
+                _grnIdsToInvoice.Add(grnId.Value);
+            }
+
             InvoiceDatePicker.SelectedDate = DateTime.Today;
             InvoiceItemsDataGrid.ItemsSource = _items;
+            _items.CollectionChanged += (s, e) => UpdateTotal();
+
             LoadInitialData();
+            InvoiceNumberTextBox.Text = $"PINV-{DateTime.Now:yyyyMMddHHmmss}";
         }
-        // --- نهاية الإصلاح ---
+
+        private void UpdateTotal()
+        {
+            decimal totalAmount = _items.Sum(i => i.Subtotal);
+            if (TotalAmountTextBlock != null)
+            {
+                TotalAmountTextBlock.Text = $"{totalAmount:N2} {AppSettings.DefaultCurrencySymbol}";
+            }
+        }
 
         private void LoadInitialData()
         {
             using (var db = new DatabaseContext())
             {
                 SupplierComboBox.ItemsSource = db.Suppliers.ToList();
-                ProductColumn.ItemsSource = db.Products.ToList();
 
-                if (_grnId.HasValue) // حالة إنشاء فاتورة من مذكرة استلام
+                int? effectivePoId = _purchaseOrderId;
+
+                if (_grnIdsToInvoice.Any())
                 {
-                    var grn = db.GoodsReceiptNotes
-                               .Include(g => g.PurchaseOrder.Supplier)
-                               .Include(g => g.GoodsReceiptNoteItems)
-                               .ThenInclude(gi => gi.Product)
-                               .FirstOrDefault(g => g.Id == _grnId.Value);
-                    if (grn != null)
-                    {
-                        Title = $"إنشاء فاتورة لمذكرة الاستلام: {grn.GRNNumber}";
-                        _purchaseOrderId = grn.PurchaseOrderId;
-                        SupplierComboBox.SelectedValue = grn.PurchaseOrder.SupplierId;
-                        SupplierComboBox.IsEnabled = false;
-
-                        var poItems = db.PurchaseOrderItems.Where(i => i.PurchaseOrderId == grn.PurchaseOrderId).ToList();
-                        foreach (var item in grn.GoodsReceiptNoteItems)
-                        {
-                            var poItem = poItems.FirstOrDefault(p => p.ProductId == item.ProductId);
-                            _items.Add(new PurchaseInvoiceItemViewModel
-                            {
-                                ProductId = item.ProductId,
-                                ProductName = item.Product.Name,
-                                Quantity = item.QuantityReceived,
-                                UnitPrice = poItem?.UnitPrice ?? 0
-                            });
-                        }
-                        InvoiceItemsDataGrid.IsReadOnly = true;
-                    }
+                    var grn = db.GoodsReceiptNotes.Find(_grnIdsToInvoice.First());
+                    if (grn != null) effectivePoId = grn.PurchaseOrderId;
                 }
-                // --- بداية التحديث: منطق ملء البيانات من أمر الشراء ---
-                else if (_purchaseOrderId.HasValue)
+
+                if (!effectivePoId.HasValue) return;
+
+                var po = db.PurchaseOrders
+                           .Include(p => p.Supplier)
+                           .Include(p => p.PurchaseOrderItems)
+                           .FirstOrDefault(p => p.Id == effectivePoId.Value);
+
+                if (po == null) { this.Close(); return; }
+
+                Title = $"إنشاء فاتورة لأمر الشراء: {po.PurchaseOrderNumber}";
+                SupplierComboBox.SelectedValue = po.SupplierId;
+                SupplierComboBox.IsEnabled = false;
+
+                var uninvoicedGrnItemsQuery = db.GoodsReceiptNoteItems
+                    .Include(gri => gri.GoodsReceiptNote)
+                    .Include(gri => gri.Product)
+                    .Where(gri => gri.GoodsReceiptNote.PurchaseOrderId == effectivePoId.Value && !gri.GoodsReceiptNote.IsInvoiced);
+
+                if (_grnIdsToInvoice.Any())
                 {
-                    var po = db.PurchaseOrders
-                               .Include(p => p.PurchaseOrderItems).ThenInclude(i => i.Product)
-                               .FirstOrDefault(p => p.Id == _purchaseOrderId.Value);
-                    if (po != null)
-                    {
-                        Title = $"إنشاء فاتورة لأمر الشراء: {po.PurchaseOrderNumber}";
-                        SupplierComboBox.SelectedValue = po.SupplierId;
-                        SupplierComboBox.IsEnabled = false; // لا يمكن تغيير المورد
-
-                        // جلب بنود أمر الشراء وملء الجدول بها
-                        foreach (var item in po.PurchaseOrderItems)
-                        {
-                            _items.Add(new PurchaseInvoiceItemViewModel
-                            {
-                                ProductId = item.ProductId,
-                                ProductName = item.Product.Name,
-                                Quantity = item.Quantity,
-                                UnitPrice = item.UnitPrice
-                            });
-                        }
-                    }
+                    uninvoicedGrnItemsQuery = uninvoicedGrnItemsQuery.Where(gri => _grnIdsToInvoice.Contains(gri.GoodsReceiptNoteId));
                 }
-                // --- نهاية التحديث ---
+
+                var uninvoicedGrnItems = uninvoicedGrnItemsQuery.ToList();
+
+                // --- بداية الإصلاح: إزالة الإغلاق التلقائي من هنا ---
+                // if (!uninvoicedGrnItems.Any())
+                // {
+                //     // MessageBox.Show("لا توجد بضاعة مستلمة وغير مفوترة لإنشاء فاتورة لها.", "تنبيه");
+                //     // this.Close(); // هذا السطر هو سبب المشكلة
+                //     return;
+                // }
+                // --- نهاية الإصلاح ---
+
+                _grnIdsToInvoice = uninvoicedGrnItems.Select(i => i.GoodsReceiptNoteId).Distinct().ToList();
+
+                var itemsToInvoice = uninvoicedGrnItems
+                    .GroupBy(gri => new { gri.ProductId, gri.Product.Name })
+                    .Select(g => new PurchaseInvoiceItemViewModel
+                    {
+                        ProductId = g.Key.ProductId,
+                        ProductName = g.Key.Name,
+                        Quantity = g.Sum(i => i.QuantityReceived),
+                        UnitPrice = po.PurchaseOrderItems.FirstOrDefault(poi => poi.ProductId == g.Key.ProductId)?.UnitPrice ?? 0
+                    })
+                    .ToList();
+
+                foreach (var item in itemsToInvoice)
+                {
+                    _items.Add(item);
+                }
+
+                InvoiceItemsDataGrid.IsReadOnly = true;
             }
+
+            UpdateTotal();
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
@@ -112,10 +142,19 @@ namespace GoodMorningFactory.UI.Views
                 return;
             }
 
-            try
+            using (var db = new DatabaseContext())
+            using (var transaction = db.Database.BeginTransaction())
             {
-                using (var db = new DatabaseContext())
+                try
                 {
+                    var companyInfo = db.CompanyInfos.FirstOrDefault();
+                    if (companyInfo?.DefaultInventoryAccountId == null || companyInfo?.DefaultAccountsPayableAccountId == null)
+                    {
+                        throw new Exception("يرجى تحديد حساب 'المخزون' و 'الذمم الدائنة' الافتراضي في شاشة الإعدادات أولاً.");
+                    }
+
+                    decimal totalAmount = _items.Sum(i => i.Subtotal);
+
                     var purchase = new Purchase
                     {
                         InvoiceNumber = InvoiceNumberTextBox.Text,
@@ -123,9 +162,8 @@ namespace GoodMorningFactory.UI.Views
                         DueDate = DueDatePicker.SelectedDate,
                         SupplierId = (int)SupplierComboBox.SelectedValue,
                         PurchaseOrderId = _purchaseOrderId,
-                        GoodsReceiptNoteId = _grnId, // <-- ربط الفاتورة بمذكرة الاستلام
                         Status = PurchaseInvoiceStatus.ApprovedForPayment,
-                        TotalAmount = _items.Sum(i => i.Quantity * i.UnitPrice),
+                        TotalAmount = totalAmount,
                         AmountPaid = 0
                     };
 
@@ -133,24 +171,64 @@ namespace GoodMorningFactory.UI.Views
                     {
                         purchase.PurchaseItems.Add(new PurchaseItem { ProductId = item.ProductId, Quantity = item.Quantity, UnitPrice = item.UnitPrice });
                     }
-
-                    if (_grnId.HasValue)
-                    {
-                        var grnToUpdate = db.GoodsReceiptNotes.Find(_grnId.Value);
-                        if (grnToUpdate != null) { grnToUpdate.IsInvoiced = true; }
-                    }
-                    // --- بداية التحديث: تحديث حالة أمر الشراء إلى "مفوتر" ---
-                 
-
                     db.Purchases.Add(purchase);
+
+                    if (_grnIdsToInvoice.Any())
+                    {
+                        var grnsToUpdate = db.GoodsReceiptNotes.Where(g => _grnIdsToInvoice.Contains(g.Id)).ToList();
+                        foreach (var grn in grnsToUpdate)
+                        {
+                            grn.IsInvoiced = true;
+                        }
+                    }
+
+                    if (_purchaseOrderId.HasValue)
+                    {
+                        var poToUpdate = db.PurchaseOrders.Find(_purchaseOrderId.Value);
+                        if (poToUpdate != null)
+                        {
+                            var totalInvoicedAmount = db.Purchases
+                                .Where(p => p.PurchaseOrderId == _purchaseOrderId)
+                                .Sum(p => (decimal?)p.TotalAmount) ?? 0;
+                            totalInvoicedAmount += totalAmount;
+
+                            if (totalInvoicedAmount >= poToUpdate.TotalAmount)
+                            {
+                                poToUpdate.InvoicingStatus = POInvoicingStatus.FullyInvoiced;
+                                poToUpdate.Status = PurchaseOrderStatus.Invoiced;
+                            }
+                            else
+                            {
+                                poToUpdate.InvoicingStatus = POInvoicingStatus.PartiallyInvoiced;
+                            }
+                        }
+                    }
+
+                    var journalVoucher = new JournalVoucher
+                    {
+                        VoucherNumber = $"PI-{purchase.InvoiceNumber}",
+                        VoucherDate = purchase.PurchaseDate,
+                        Description = $"إثبات فاتورة شراء من المورد: {((Supplier)SupplierComboBox.SelectedItem).Name} - فاتورة رقم: {purchase.InvoiceNumber}",
+                        TotalDebit = totalAmount,
+                        TotalCredit = totalAmount,
+                        Status = VoucherStatus.Posted
+                    };
+
+                    journalVoucher.JournalVoucherItems.Add(new JournalVoucherItem { AccountId = companyInfo.DefaultInventoryAccountId.Value, Debit = totalAmount, Credit = 0 });
+                    journalVoucher.JournalVoucherItems.Add(new JournalVoucherItem { AccountId = companyInfo.DefaultAccountsPayableAccountId.Value, Debit = 0, Credit = totalAmount });
+
+                    db.JournalVouchers.Add(journalVoucher);
+
                     db.SaveChanges();
-                    MessageBox.Show("تم تسجيل فاتورة المورد بنجاح.", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
+                    transaction.Commit();
+                    MessageBox.Show("تم تسجيل فاتورة المورد والقيد المحاسبي بنجاح.", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
                     this.DialogResult = true;
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل تسجيل الفاتورة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    MessageBox.Show($"فشل تسجيل الفاتورة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }

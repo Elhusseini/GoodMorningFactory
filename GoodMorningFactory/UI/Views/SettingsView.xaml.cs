@@ -2,15 +2,16 @@
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using GoodMorningFactory.UI.ViewModels;
+using GoodMorningFactory.Core.Services;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using System.ComponentModel;
 
 namespace GoodMorningFactory.UI.Views
 {
@@ -19,7 +20,7 @@ namespace GoodMorningFactory.UI.Views
         private readonly string _appDataFolder;
         private readonly string _dbPath;
         private readonly string _backupFolder;
-        private CompanyInfo? _companyInfo;
+        private CompanyInfo _companyInfo;
         private byte[]? _logoBytes;
 
         public SettingsView()
@@ -29,25 +30,26 @@ namespace GoodMorningFactory.UI.Views
             _dbPath = Path.Combine(_appDataFolder, "GoodMorningFactory.db");
             _backupFolder = Path.Combine(_appDataFolder, "Backups");
 
+            Directory.CreateDirectory(_appDataFolder);
             Directory.CreateDirectory(_backupFolder);
 
             LoadCompanyInfo();
             LoadGeneralSettingsOptions();
             LoadUserRoleSettingsOptions();
+            LoadDefaultAccounts();
+            LoadInventorySettings(); // *** إضافة جديدة ***
+            LoadBackupSettings(); // استدعاء الدالة الجديدة
             LoadNumberingSequences();
             LoadNotificationSettings();
             LoadBackups();
-            LoadDefaultAccounts();
         }
 
+        #region Load Methods
         private void LoadCompanyInfo()
         {
             using (var db = new DatabaseContext())
             {
-                _companyInfo = db.CompanyInfos.FirstOrDefault();
-                if (_companyInfo == null) { _companyInfo = new CompanyInfo { Id = 1 }; }
-
-                // معلومات المصنع
+                _companyInfo = db.CompanyInfos.FirstOrDefault() ?? new CompanyInfo();
                 CompanyNameTextBox.Text = _companyInfo.CompanyName;
                 AddressTextBox.Text = _companyInfo.Address;
                 CityTextBox.Text = _companyInfo.City;
@@ -59,13 +61,8 @@ namespace GoodMorningFactory.UI.Views
                 CommercialRegTextBox.Text = _companyInfo.CommercialRegistrationNumber;
                 _logoBytes = _companyInfo.Logo;
                 DisplayLogo();
-
-                // الإعدادات العامة
                 LanguageComboBox.SelectedItem = _companyInfo.DefaultLanguage ?? "العربية";
                 DateFormatComboBox.SelectedItem = _companyInfo.DefaultDateFormat ?? "dd/MM/yyyy";
-                CurrencyComboBox.SelectedItem = _companyInfo.BaseCurrency ?? "KWD";
-
-                // إعدادات المستخدمين
                 MinPassLengthTextBox.Text = _companyInfo.MinPasswordLength.ToString();
                 PassExpiryTextBox.Text = _companyInfo.PasswordExpiryDays.ToString();
                 LockoutAttemptsTextBox.Text = _companyInfo.FailedLoginLockoutAttempts.ToString();
@@ -73,15 +70,28 @@ namespace GoodMorningFactory.UI.Views
                 RequireLowercaseCheckBox.IsChecked = _companyInfo.RequireLowercase;
                 RequireDigitCheckBox.IsChecked = _companyInfo.RequireDigit;
                 RequireSpecialCharCheckBox.IsChecked = _companyInfo.RequireSpecialChar;
-                DefaultRoleComboBox.SelectedValue = _companyInfo.DefaultRoleId;
             }
         }
 
         private void LoadGeneralSettingsOptions()
         {
-            LanguageComboBox.ItemsSource = new[] { "العربية", "English" };
-            DateFormatComboBox.ItemsSource = new[] { "dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd" };
-            CurrencyComboBox.ItemsSource = new[] { "KWD", "USD", "EUR", "SAR" };
+            try
+            {
+                LanguageComboBox.ItemsSource = new[] { "العربية", "الإنجليزية" };
+                DateFormatComboBox.ItemsSource = new[] { "dd/MM/yyyy", "MM/dd/yyyy", "yyyy-MM-dd" };
+                using (var db = new DatabaseContext())
+                {
+                    CurrencyComboBox.ItemsSource = db.Currencies.Where(c => c.IsActive).ToList();
+                    if (_companyInfo?.DefaultCurrencyId != null)
+                    {
+                        CurrencyComboBox.SelectedValue = _companyInfo.DefaultCurrencyId;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"فشل تحميل الإعدادات العامة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void LoadUserRoleSettingsOptions()
@@ -89,8 +99,77 @@ namespace GoodMorningFactory.UI.Views
             using (var db = new DatabaseContext())
             {
                 DefaultRoleComboBox.ItemsSource = db.Roles.ToList();
+                if (_companyInfo?.DefaultRoleId != null)
+                {
+                    DefaultRoleComboBox.SelectedValue = _companyInfo.DefaultRoleId;
+                }
             }
         }
+
+        private void LoadDefaultAccounts()
+        {
+            try
+            {
+                using (var db = new DatabaseContext())
+                {
+                    var accounts = db.Accounts.OrderBy(a => a.AccountNumber).ToList();
+                    var expenseAccounts = accounts.Where(a => a.AccountType == AccountType.Expense).ToList();
+                    var assetAccounts = accounts.Where(a => a.AccountType == AccountType.Asset).ToList();
+                    var liabilityAccounts = accounts.Where(a => a.AccountType == AccountType.Liability).ToList();
+
+                    SalesAccountComboBox.ItemsSource = new List<Account>(accounts);
+                    AccountsReceivableComboBox.ItemsSource = new List<Account>(accounts);
+                    PurchasesAccountComboBox.ItemsSource = new List<Account>(accounts);
+                    AccountsPayableComboBox.ItemsSource = new List<Account>(accounts);
+                    CashAccountComboBox.ItemsSource = assetAccounts;
+                    InventoryAccountComboBox.ItemsSource = assetAccounts;
+                    PurchaseReturnsAccountComboBox.ItemsSource = new List<Account>(accounts);
+                    PayrollExpenseAccountComboBox.ItemsSource = expenseAccounts;
+                    PayrollAccrualAccountComboBox.ItemsSource = liabilityAccounts;
+                    CogsAccountComboBox.ItemsSource = expenseAccounts;
+                    VatAccountComboBox.ItemsSource = liabilityAccounts;
+                    InventoryAdjustmentAccountComboBox.ItemsSource = expenseAccounts;
+
+                    if (_companyInfo != null)
+                    {
+                        SalesAccountComboBox.SelectedValue = _companyInfo.DefaultSalesAccountId;
+                        AccountsReceivableComboBox.SelectedValue = _companyInfo.DefaultAccountsReceivableAccountId;
+                        PurchasesAccountComboBox.SelectedValue = _companyInfo.DefaultPurchasesAccountId;
+                        AccountsPayableComboBox.SelectedValue = _companyInfo.DefaultAccountsPayableAccountId;
+                        CashAccountComboBox.SelectedValue = _companyInfo.DefaultCashAccountId;
+                        InventoryAccountComboBox.SelectedValue = _companyInfo.DefaultInventoryAccountId;
+                        PurchaseReturnsAccountComboBox.SelectedValue = _companyInfo.DefaultPurchaseReturnsAccountId;
+                        PayrollExpenseAccountComboBox.SelectedValue = _companyInfo.DefaultPayrollExpenseAccountId;
+                        PayrollAccrualAccountComboBox.SelectedValue = _companyInfo.DefaultPayrollAccrualAccountId;
+                        CogsAccountComboBox.SelectedValue = _companyInfo.DefaultCogsAccountId;
+                        VatAccountComboBox.SelectedValue = _companyInfo.DefaultVatAccountId;
+                        InventoryAdjustmentAccountComboBox.SelectedValue = _companyInfo.DefaultInventoryAdjustmentAccountId;
+                    }
+                }
+            }
+            catch (Exception ex) { MessageBox.Show($"فشل تحميل الحسابات الافتراضية: {ex.Message}"); }
+        }
+
+        // --- بداية الإضافة: دالة تحميل إعدادات المخزون ---
+        private void LoadInventorySettings()
+        {
+            try
+            {
+                CostingMethodComboBox.ItemsSource = Enum.GetValues(typeof(InventoryCostingMethod))
+                    .Cast<InventoryCostingMethod>()
+                    .Select(e => new { Value = e, Description = GetEnumDescription(e) });
+
+                if (_companyInfo != null)
+                {
+                    CostingMethodComboBox.SelectedValue = _companyInfo.DefaultCostingMethod;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"فشل تحميل إعدادات المخزون: {ex.Message}");
+            }
+        }
+        // --- نهاية الإضافة ---
 
         private void LoadNumberingSequences()
         {
@@ -98,13 +177,26 @@ namespace GoodMorningFactory.UI.Views
             {
                 using (var db = new DatabaseContext())
                 {
-                    NumberingDataGrid.ItemsSource = db.NumberingSequences.ToList();
+                    var settings = db.NumberingSequences.ToList();
+                    var allDocTypes = Enum.GetValues(typeof(DocumentType)).Cast<DocumentType>();
+
+                    var sequencesToDisplay = new List<NumberingSequence>();
+                    foreach (var docType in allDocTypes)
+                    {
+                        var setting = settings.FirstOrDefault(s => s.DocumentType == docType);
+                        if (setting == null)
+                        {
+                            sequencesToDisplay.Add(new NumberingSequence { DocumentType = docType, LastNumber = 0, NumberOfDigits = 4 });
+                        }
+                        else
+                        {
+                            sequencesToDisplay.Add(setting);
+                        }
+                    }
+                    NumberingDataGrid.ItemsSource = sequencesToDisplay.OrderBy(s => s.DocumentType.ToString()).ToList();
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل تحميل إعدادات الترقيم: {ex.Message}", "خطأ");
-            }
+            catch (Exception ex) { MessageBox.Show($"فشل تحميل إعدادات الترقيم: {ex.Message}"); }
         }
 
         private void LoadNotificationSettings()
@@ -116,37 +208,7 @@ namespace GoodMorningFactory.UI.Views
                     NotificationsDataGrid.ItemsSource = db.NotificationSettings.ToList();
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل تحميل إعدادات الإشعارات: {ex.Message}", "خطأ");
-            }
-        }
-
-        private void LoadDefaultAccounts()
-        {
-            try
-            {
-                using (var db = new DatabaseContext())
-                {
-                    var accounts = db.Accounts.ToList();
-                    SalesAccountComboBox.ItemsSource = accounts;
-                    AccountsReceivableComboBox.ItemsSource = accounts;
-                    PurchasesAccountComboBox.ItemsSource = accounts;
-                    AccountsPayableComboBox.ItemsSource = accounts;
-
-                    if (_companyInfo != null)
-                    {
-                        SalesAccountComboBox.SelectedValue = _companyInfo.DefaultSalesAccountId;
-                        AccountsReceivableComboBox.SelectedValue = _companyInfo.DefaultAccountsReceivableId;
-                        PurchasesAccountComboBox.SelectedValue = _companyInfo.DefaultPurchasesAccountId;
-                        AccountsPayableComboBox.SelectedValue = _companyInfo.DefaultAccountsPayableId;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل تحميل الحسابات الافتراضية: {ex.Message}", "خطأ");
-            }
+            catch (Exception ex) { MessageBox.Show($"فشل تحميل إعدادات الإشعارات: {ex.Message}"); }
         }
 
         private void LoadBackups()
@@ -162,15 +224,35 @@ namespace GoodMorningFactory.UI.Views
                         CreationDate = fi.CreationTime,
                         FileSize = $"{fi.Length / 1024} KB"
                     })
-                    .OrderByDescending(f => f.CreationDate)
-                    .ToList();
-
+                    .OrderByDescending(f => f.CreationDate).ToList();
                 BackupsListView.ItemsSource = backupFiles;
             }
-            catch (Exception ex)
+            catch (Exception ex) { MessageBox.Show($"فشل تحميل قائمة النسخ الاحتياطية: {ex.Message}"); }
+        }
+
+        // --- بداية الإضافة: دالة تحميل إعدادات النسخ الاحتياطي ---
+        private void LoadBackupSettings()
+        {
+            if (_companyInfo != null)
             {
-                MessageBox.Show($"فشل تحميل قائمة النسخ الاحتياطية: {ex.Message}", "خطأ");
+                AutoBackupCheckBox.IsChecked = _companyInfo.IsAutoBackupEnabled;
+                BackupsToKeepTextBox.Text = _companyInfo.BackupsToKeep.ToString();
             }
+        }
+        // --- نهاية الإضافة ---
+
+        #endregion
+
+        #region Save Methods
+        private CompanyInfo GetOrCreateCompanyInfo(DatabaseContext db)
+        {
+            var info = db.CompanyInfos.FirstOrDefault();
+            if (info == null)
+            {
+                info = new CompanyInfo();
+                db.CompanyInfos.Add(info);
+            }
+            return info;
         }
 
         private void SaveCompanyInfoButton_Click(object sender, RoutedEventArgs e)
@@ -179,36 +261,22 @@ namespace GoodMorningFactory.UI.Views
             {
                 using (var db = new DatabaseContext())
                 {
-                    if (_companyInfo == null) return;
-                    
-                    _companyInfo.CompanyName = CompanyNameTextBox.Text;
-                    _companyInfo.Address = AddressTextBox.Text;
-                    _companyInfo.City = CityTextBox.Text;
-                    _companyInfo.Country = CountryTextBox.Text;
-                    _companyInfo.PhoneNumber = PhoneNumberTextBox.Text;
-                    _companyInfo.Email = EmailTextBox.Text;
-                    _companyInfo.Website = WebsiteTextBox.Text;
-                    _companyInfo.TaxNumber = TaxNumberTextBox.Text;
-                    _companyInfo.CommercialRegistrationNumber = CommercialRegTextBox.Text;
-                    _companyInfo.Logo = _logoBytes;
-
-                    if (db.CompanyInfos.Any())
-                    {
-                        db.CompanyInfos.Update(_companyInfo);
-                    }
-                    else
-                    {
-                        db.CompanyInfos.Add(_companyInfo);
-                    }
-
+                    var info = GetOrCreateCompanyInfo(db);
+                    info.CompanyName = CompanyNameTextBox.Text;
+                    info.Address = AddressTextBox.Text;
+                    info.City = CityTextBox.Text;
+                    info.Country = CountryTextBox.Text;
+                    info.PhoneNumber = PhoneNumberTextBox.Text;
+                    info.Email = EmailTextBox.Text;
+                    info.Website = WebsiteTextBox.Text;
+                    info.TaxNumber = TaxNumberTextBox.Text;
+                    info.CommercialRegistrationNumber = CommercialRegTextBox.Text;
+                    info.Logo = _logoBytes;
                     db.SaveChanges();
-                    MessageBox.Show("تم حفظ معلومات المصنع بنجاح", "نجاح");
+                    MessageBox.Show("تم حفظ معلومات المصنع بنجاح.", "نجاح");
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل حفظ معلومات المصنع: {ex.Message}", "خطأ");
-            }
+            catch (Exception ex) { MessageBox.Show($"فشل حفظ المعلومات: {ex.Message}"); }
         }
 
         private void SaveGeneralSettingsButton_Click(object sender, RoutedEventArgs e)
@@ -217,21 +285,25 @@ namespace GoodMorningFactory.UI.Views
             {
                 using (var db = new DatabaseContext())
                 {
-                    if (_companyInfo == null) return;
-
-                    _companyInfo.DefaultLanguage = LanguageComboBox.SelectedItem?.ToString();
-                    _companyInfo.DefaultDateFormat = DateFormatComboBox.SelectedItem?.ToString();
-                    _companyInfo.BaseCurrency = CurrencyComboBox.SelectedItem?.ToString();
-
-                    db.CompanyInfos.Update(_companyInfo);
+                    var info = GetOrCreateCompanyInfo(db);
+                    var selectedCurrencyId = (int?)CurrencyComboBox.SelectedValue;
+                    info.DefaultLanguage = LanguageComboBox.SelectedItem as string;
+                    info.DefaultDateFormat = DateFormatComboBox.SelectedItem as string;
+                    info.DefaultCurrencyId = selectedCurrencyId;
+                    if (selectedCurrencyId.HasValue)
+                    {
+                        var allCurrencies = db.Currencies.ToList();
+                        foreach (var currency in allCurrencies)
+                        {
+                            currency.IsDefault = (currency.Id == selectedCurrencyId.Value);
+                        }
+                    }
                     db.SaveChanges();
-                    MessageBox.Show("تم حفظ الإعدادات العامة بنجاح", "نجاح");
+                    Core.Services.AppSettings.LoadSettings();
+                    MessageBox.Show("تم حفظ الإعدادات العامة بنجاح.", "نجاح");
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل حفظ الإعدادات العامة: {ex.Message}", "خطأ");
-            }
+            catch (Exception ex) { MessageBox.Show($"فشل حفظ الإعدادات: {ex.Message}\n{ex.InnerException?.Message}", "خطأ"); }
         }
 
         private void SaveUserSettingsButton_Click(object sender, RoutedEventArgs e)
@@ -240,74 +312,19 @@ namespace GoodMorningFactory.UI.Views
             {
                 using (var db = new DatabaseContext())
                 {
-                    if (_companyInfo == null) return;
-
-                    if (int.TryParse(MinPassLengthTextBox.Text, out int minLength))
-                        _companyInfo.MinPasswordLength = minLength;
-                    
-                    if (int.TryParse(PassExpiryTextBox.Text, out int expiryDays))
-                        _companyInfo.PasswordExpiryDays = expiryDays;
-                    
-                    if (int.TryParse(LockoutAttemptsTextBox.Text, out int lockoutAttempts))
-                        _companyInfo.FailedLoginLockoutAttempts = lockoutAttempts;
-
-                    _companyInfo.RequireUppercase = RequireUppercaseCheckBox.IsChecked ?? false;
-                    _companyInfo.RequireLowercase = RequireLowercaseCheckBox.IsChecked ?? false;
-                    _companyInfo.RequireDigit = RequireDigitCheckBox.IsChecked ?? false;
-                    _companyInfo.RequireSpecialChar = RequireSpecialCharCheckBox.IsChecked ?? false;
-                    _companyInfo.DefaultRoleId = DefaultRoleComboBox.SelectedValue as int?;
-
-                    db.CompanyInfos.Update(_companyInfo);
+                    var info = GetOrCreateCompanyInfo(db);
+                    int.TryParse(MinPassLengthTextBox.Text, out int minLength);
+                    info.MinPasswordLength = minLength > 0 ? minLength : 8;
+                    info.RequireUppercase = RequireUppercaseCheckBox.IsChecked ?? false;
+                    info.RequireLowercase = RequireLowercaseCheckBox.IsChecked ?? false;
+                    info.RequireDigit = RequireDigitCheckBox.IsChecked ?? false;
+                    info.RequireSpecialChar = RequireSpecialCharCheckBox.IsChecked ?? false;
+                    info.DefaultRoleId = (int?)DefaultRoleComboBox.SelectedValue;
                     db.SaveChanges();
-                    MessageBox.Show("تم حفظ إعدادات المستخدمين بنجاح", "نجاح");
+                    MessageBox.Show("تم حفظ إعدادات المستخدمين بنجاح.", "نجاح");
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل حفظ إعدادات المستخدمين: {ex.Message}", "خطأ");
-            }
-        }
-
-        private void SaveNumberingButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                using (var db = new DatabaseContext())
-                {
-                    var sequences = NumberingDataGrid.ItemsSource as IEnumerable<NumberingSequence>;
-                    if (sequences != null)
-                    {
-                        db.NumberingSequences.UpdateRange(sequences);
-                        db.SaveChanges();
-                        MessageBox.Show("تم حفظ إعدادات الترقيم بنجاح", "نجاح");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل حفظ إعدادات الترقيم: {ex.Message}", "خطأ");
-            }
-        }
-
-        private void SaveNotificationsButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                using (var db = new DatabaseContext())
-                {
-                    var notifications = NotificationsDataGrid.ItemsSource as IEnumerable<NotificationSetting>;
-                    if (notifications != null)
-                    {
-                        db.NotificationSettings.UpdateRange(notifications);
-                        db.SaveChanges();
-                        MessageBox.Show("تم حفظ إعدادات الإشعارات بنجاح", "نجاح");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل حفظ إعدادات الإشعارات: {ex.Message}", "خطأ");
-            }
+            catch (Exception ex) { MessageBox.Show($"فشل حفظ الإعدادات: {ex.Message}"); }
         }
 
         private void SaveDefaultAccountsButton_Click(object sender, RoutedEventArgs e)
@@ -316,43 +333,152 @@ namespace GoodMorningFactory.UI.Views
             {
                 using (var db = new DatabaseContext())
                 {
-                    if (_companyInfo == null) return;
-
-                    _companyInfo.DefaultSalesAccountId = SalesAccountComboBox.SelectedValue as int?;
-                    _companyInfo.DefaultAccountsReceivableId = AccountsReceivableComboBox.SelectedValue as int?;
-                    _companyInfo.DefaultPurchasesAccountId = PurchasesAccountComboBox.SelectedValue as int?;
-                    _companyInfo.DefaultAccountsPayableId = AccountsPayableComboBox.SelectedValue as int?;
-
-                    db.CompanyInfos.Update(_companyInfo);
+                    var info = GetOrCreateCompanyInfo(db);
+                    info.DefaultSalesAccountId = (int?)SalesAccountComboBox.SelectedValue;
+                    info.DefaultAccountsReceivableAccountId = (int?)AccountsReceivableComboBox.SelectedValue;
+                    info.DefaultPurchasesAccountId = (int?)PurchasesAccountComboBox.SelectedValue;
+                    info.DefaultAccountsPayableAccountId = (int?)AccountsPayableComboBox.SelectedValue;
+                    info.DefaultCashAccountId = (int?)CashAccountComboBox.SelectedValue;
+                    info.DefaultInventoryAccountId = (int?)InventoryAccountComboBox.SelectedValue;
+                    info.DefaultPurchaseReturnsAccountId = (int?)PurchaseReturnsAccountComboBox.SelectedValue;
+                    info.DefaultPayrollExpenseAccountId = (int?)PayrollExpenseAccountComboBox.SelectedValue;
+                    info.DefaultPayrollAccrualAccountId = (int?)PayrollAccrualAccountComboBox.SelectedValue;
+                    info.DefaultCogsAccountId = (int?)CogsAccountComboBox.SelectedValue;
+                    info.DefaultVatAccountId = (int?)VatAccountComboBox.SelectedValue;
+                    info.DefaultInventoryAdjustmentAccountId = (int?)InventoryAdjustmentAccountComboBox.SelectedValue;
                     db.SaveChanges();
-                    MessageBox.Show("تم حفظ الحسابات الافتراضية بنجاح", "نجاح");
+                    MessageBox.Show("تم حفظ الحسابات الافتراضية بنجاح.", "نجاح");
+                }
+            }
+            catch (Exception ex) { MessageBox.Show($"فشل حفظ الإعدادات: {ex.Message}"); }
+        }
+
+        // --- بداية الإضافة: دالة حفظ إعدادات المخزون ---
+        private void SaveInventorySettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (CostingMethodComboBox.SelectedValue == null)
+            {
+                MessageBox.Show("يرجى اختيار طريقة تقييم المخزون.", "بيانات ناقصة");
+                return;
+            }
+            try
+            {
+                using (var db = new DatabaseContext())
+                {
+                    var info = GetOrCreateCompanyInfo(db);
+                    info.DefaultCostingMethod = (InventoryCostingMethod)CostingMethodComboBox.SelectedValue;
+                    db.SaveChanges();
+                    MessageBox.Show("تم حفظ إعدادات المخزون بنجاح.", "نجاح");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"فشل حفظ الحسابات الافتراضية: {ex.Message}", "خطأ");
+                MessageBox.Show($"فشل حفظ إعدادات المخزون: {ex.Message}", "خطأ");
             }
         }
+        // --- نهاية الإضافة ---
 
+        private void SaveNumberingButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                using (var db = new DatabaseContext())
+                {
+                    var sequencesFromGrid = NumberingDataGrid.ItemsSource as List<NumberingSequence>;
+                    if (sequencesFromGrid == null) return;
+
+                    foreach (var seq in sequencesFromGrid)
+                    {
+                        var seqInDb = db.NumberingSequences.FirstOrDefault(s => s.DocumentType == seq.DocumentType);
+                        if (seqInDb != null)
+                        {
+                            seqInDb.Prefix = seq.Prefix;
+                            seqInDb.LastNumber = seq.LastNumber;
+                            seqInDb.NumberOfDigits = seq.NumberOfDigits;
+                        }
+                        else
+                        {
+                            db.NumberingSequences.Add(new NumberingSequence
+                            {
+                                DocumentType = seq.DocumentType,
+                                Prefix = seq.Prefix,
+                                LastNumber = seq.LastNumber,
+                                NumberOfDigits = seq.NumberOfDigits
+                            });
+                        }
+                    }
+                    db.SaveChanges();
+                    MessageBox.Show("تم حفظ إعدادات الترقيم بنجاح.", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex) { MessageBox.Show($"فشل حفظ إعدادات الترقيم: {ex.InnerException?.Message ?? ex.Message}", "خطأ"); }
+        }
+
+        private void SaveNotificationsButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                using (var db = new DatabaseContext())
+                {
+                    var settings = (List<NotificationSetting>)NotificationsDataGrid.ItemsSource;
+                    foreach (var setting in settings)
+                    {
+                        var existing = db.NotificationSettings.Find(setting.Id);
+                        if (existing != null)
+                        {
+                            db.Entry(existing).CurrentValues.SetValues(setting);
+                        }
+                        else
+                        {
+                            db.NotificationSettings.Add(setting);
+                        }
+                    }
+                    db.SaveChanges();
+                    MessageBox.Show("تم حفظ إعدادات الإشعارات بنجاح.", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex) { MessageBox.Show($"فشل حفظ إعدادات الإشعارات: {ex.Message}", "خطأ"); }
+        }
+
+
+        // --- بداية الإضافة: دالة حفظ إعدادات النسخ الاحتياطي ---
+        private void SaveBackupSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!int.TryParse(BackupsToKeepTextBox.Text, out int backupsToKeep) || backupsToKeep < 1)
+            {
+                MessageBox.Show("يرجى إدخال عدد صحيح وصالح للنسخ التي سيتم الاحتفاظ بها (1 على الأقل).", "خطأ في الإدخال");
+                return;
+            }
+
+            try
+            {
+                using (var db = new DatabaseContext())
+                {
+                    var info = GetOrCreateCompanyInfo(db);
+                    info.IsAutoBackupEnabled = AutoBackupCheckBox.IsChecked ?? true;
+                    info.BackupsToKeep = backupsToKeep;
+                    db.SaveChanges();
+                    MessageBox.Show("تم حفظ إعدادات النسخ الاحتياطي بنجاح.", "نجاح");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"فشل حفظ الإعدادات: {ex.Message}", "خطأ");
+            }
+        }
+        // --- نهاية الإضافة ---
+
+
+        #endregion
+
+        #region Other UI Event Handlers
         private void UploadLogoButton_Click(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = "ملفات الصور|*.jpg;*.jpeg;*.png;*.bmp",
-                Title = "اختر شعار المصنع"
-            };
-
+            OpenFileDialog openFileDialog = new OpenFileDialog { Filter = "ملفات الصور (*.png;*.jpeg;*.jpg)|*.png;*.jpeg;*.jpg", Title = "اختر شعار الشركة" };
             if (openFileDialog.ShowDialog() == true)
             {
-                try
-                {
-                    _logoBytes = File.ReadAllBytes(openFileDialog.FileName);
-                    DisplayLogo();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"فشل تحميل الشعار: {ex.Message}", "خطأ");
-                }
+                _logoBytes = File.ReadAllBytes(openFileDialog.FileName);
+                DisplayLogo();
             }
         }
 
@@ -360,19 +486,15 @@ namespace GoodMorningFactory.UI.Views
         {
             if (_logoBytes != null && _logoBytes.Length > 0)
             {
-                using (var stream = new MemoryStream(_logoBytes))
+                BitmapImage image = new BitmapImage();
+                using (MemoryStream stream = new MemoryStream(_logoBytes))
                 {
-                    var bitmapImage = new BitmapImage();
-                    bitmapImage.BeginInit();
-                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmapImage.StreamSource = stream;
-                    bitmapImage.EndInit();
-                    LogoImage.Source = bitmapImage;
+                    image.BeginInit();
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.StreamSource = stream;
+                    image.EndInit();
                 }
-            }
-            else
-            {
-                LogoImage.Source = null;
+                LogoImage.Source = image;
             }
         }
 
@@ -380,74 +502,79 @@ namespace GoodMorningFactory.UI.Views
         {
             try
             {
-                var backupFileName = $"Backup_{DateTime.Now:yyyyMMdd_HHmmss}.db";
-                var backupPath = Path.Combine(_backupFolder, backupFileName);
-                File.Copy(_dbPath, backupPath);
+                string backupFileName = $"backup_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.db";
+                string backupFilePath = Path.Combine(_backupFolder, backupFileName);
+                File.Copy(_dbPath, backupFilePath, true);
+                MessageBox.Show($"تم إنشاء نسخة احتياطية بنجاح.\nالمسار: {backupFilePath}", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
                 LoadBackups();
-                MessageBox.Show($"تم إنشاء نسخة احتياطية بنجاح في: {backupPath}", "نجاح");
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشل إنشاء نسخة احتياطية: {ex.Message}", "خطأ");
-            }
+            catch (Exception ex) { MessageBox.Show($"فشلت عملية النسخ الاحتياطي: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error); }
         }
 
         private void RestoreButton_Click(object sender, RoutedEventArgs e)
         {
-            if (BackupsListView.SelectedItem is BackupFileViewModel selectedBackup)
+            if ((sender as Button)?.DataContext is BackupFileViewModel backup)
             {
-                try
+                var result = MessageBox.Show($"هل أنت متأكد من استعادة النسخة '{backup.FileName}'؟\nسيتم الكتابة فوق قاعدة البيانات الحالية، وهذه العملية لا يمكن التراجع عنها. يوصى بإغلاق البرنامج وإعادة فتحه بعد الاستعادة.", "تحذير خطير!", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Yes)
                 {
-                    File.Copy(selectedBackup.FilePath, _dbPath, overwrite: true);
-                    MessageBox.Show("تم استعادة النسخة الاحتياطية بنجاح. يرجى إعادة تشغيل التطبيق لتطبيق التغييرات.", "نجاح");
+                    try
+                    {
+                        File.Copy(backup.FilePath, _dbPath, true);
+                        MessageBox.Show("تمت استعادة النسخة الاحتياطية بنجاح. يرجى إعادة تشغيل البرنامج لتطبيق التغييرات.", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex) { MessageBox.Show($"فشلت عملية الاستعادة: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error); }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"فشل استعادة النسخة الاحتياطية: {ex.Message}", "خطأ");
-                }
-            }
-            else
-            {
-                MessageBox.Show("الرجاء تحديد نسخة احتياطية لاستعادتها", "تحذير");
             }
         }
 
         private void DeleteBackupButton_Click(object sender, RoutedEventArgs e)
         {
-            if (BackupsListView.SelectedItem is BackupFileViewModel selectedBackup)
+            if ((sender as Button)?.DataContext is BackupFileViewModel backup)
             {
-                try
+                var result = MessageBox.Show($"هل أنت متأكد من حذف النسخة الاحتياطية '{backup.FileName}'؟", "تأكيد الحذف", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
                 {
-                    File.Delete(selectedBackup.FilePath);
-                    LoadBackups();
-                    MessageBox.Show("تم حذف النسخة الاحتياطية بنجاح", "نجاح");
+                    try
+                    {
+                        File.Delete(backup.FilePath);
+                        MessageBox.Show("تم حذف ملف النسخة الاحتياطية.", "نجاح");
+                        LoadBackups();
+                    }
+                    catch (Exception ex) { MessageBox.Show($"فشل حذف الملف: {ex.Message}", "خطأ"); }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"فشل حذف النسخة الاحتياطية: {ex.Message}", "خطأ");
-                }
-            }
-            else
-            {
-                MessageBox.Show("الرجاء تحديد نسخة احتياطية لحذفها", "تحذير");
             }
         }
 
         private void ThemeRadioButton_Checked(object sender, RoutedEventArgs e)
         {
             var selectedTheme = (sender as RadioButton)?.Content.ToString();
-            if (selectedTheme == "فاتح (Light)")
+            try
             {
-                // تطبيق المظهر الفاتح
-                Application.Current.Resources.MergedDictionaries[0].Source =
-                    new Uri("Themes/LightTheme.xaml", UriKind.Relative);
+                if (selectedTheme == "فاتح (Light)")
+                {
+                    Application.Current.Resources.MergedDictionaries[0].Source = new Uri("Themes/LightTheme.xaml", UriKind.Relative);
+                }
+                else if (selectedTheme == "داكن (Dark)")
+                {
+                    Application.Current.Resources.MergedDictionaries[0].Source = new Uri("Themes/DarkTheme.xaml", UriKind.Relative);
+                }
             }
-            else if (selectedTheme == "داكن (Dark)")
-            {
-                // تطبيق المظهر الداكن
-                Application.Current.Resources.MergedDictionaries[0].Source =
-                    new Uri("Themes/DarkTheme.xaml", UriKind.Relative);
-            }
+            catch (Exception ex) { MessageBox.Show($"فشل تحميل المظهر: {ex.Message}. تأكد من وجود ملفات الثيم في مجلد Themes.", "خطأ"); }
         }
+
+        private void ManageCurrenciesButton_Click(object sender, RoutedEventArgs e)
+        {
+            (Window.GetWindow(this) as MainWindow)?.NavigateTo("Currencies");
+        }
+
+        private static string GetEnumDescription(Enum value)
+        {
+            var field = value.GetType().GetField(value.ToString());
+            if (field == null) return value.ToString();
+            var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute));
+            return attribute == null ? value.ToString() : attribute.Description;
+        }
+        #endregion
     }
 }

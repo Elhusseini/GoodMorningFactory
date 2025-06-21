@@ -1,7 +1,8 @@
 ﻿// UI/Views/StockMovementsView.xaml.cs
-// *** الكود الكامل للكود الخلفي لواجهة حركات المخزون ***
+// *** تحديث: تم تعديل الكود ليعمل مع الـ ViewModel المركزي ***
 using GoodMorningFactory.Data;
-using GoodMorningFactory.UI.ViewModels;
+using GoodMorningFactory.Data.Models;
+using GoodMorningFactory.UI.ViewModels; // استخدام الـ ViewModel المركزي
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -27,8 +28,24 @@ namespace GoodMorningFactory.UI.Views
 
         private void LoadFilters()
         {
-            TypeFilterComboBox.ItemsSource = new List<string> { "الكل", "استلام بضاعة", "مرتجع مبيعات", "إنتاج مكتمل", "صرف إنتاج", "مبيعات" };
+            var types = new List<object> { "الكل" };
+            types.AddRange(Enum.GetValues(typeof(StockMovementType)).Cast<object>());
+            TypeFilterComboBox.ItemsSource = types;
             TypeFilterComboBox.SelectedIndex = 0;
+
+            using (var db = new DatabaseContext())
+            {
+                var products = new List<object> { new { Name = "الكل", Id = 0 } };
+                products.AddRange(db.Products.OrderBy(p => p.Name).ToList());
+                ProductFilterComboBox.ItemsSource = products;
+                ProductFilterComboBox.SelectedIndex = 0;
+
+                // إضافة فلتر المخزن
+                var warehouses = new List<object> { new { Name = "الكل", Id = 0 } };
+                warehouses.AddRange(db.Warehouses.Where(w => w.IsActive).ToList());
+                WarehouseFilterComboBox.ItemsSource = warehouses;
+                WarehouseFilterComboBox.SelectedIndex = 0;
+            }
         }
 
         private void LoadMovements()
@@ -37,38 +54,62 @@ namespace GoodMorningFactory.UI.Views
             {
                 using (var db = new DatabaseContext())
                 {
-                    // جلب جميع أنواع الحركات
-                    var goodsReceipts = db.GoodsReceiptNoteItems.Include(i => i.GoodsReceiptNote.PurchaseOrder).Include(i => i.Product)
-                                        .Select(i => new { Date = i.GoodsReceiptNote.ReceiptDate, Type = "استلام بضاعة", Ref = i.GoodsReceiptNote.GRNNumber, ProdName = i.Product.Name, QtyIn = i.QuantityReceived, QtyOut = 0, User = "System" });
-
-                    var salesShipments = db.ShipmentItems.Include(i => i.Shipment.SalesOrder).Include(i => i.Product)
-                                        .Select(i => new { Date = i.Shipment.ShipmentDate, Type = "مبيعات", Ref = i.Shipment.ShipmentNumber, ProdName = i.Product.Name, QtyIn = 0, QtyOut = i.Quantity, User = "System" });
-
-                    var productionConsumption = db.WorkOrderMaterials.Include(m => m.WorkOrder).Include(m => m.RawMaterial)
-                                               .Select(m => new { Date = m.WorkOrder.ActualStartDate ?? m.WorkOrder.PlannedStartDate, Type = "صرف إنتاج", Ref = m.WorkOrder.WorkOrderNumber, ProdName = m.RawMaterial.Name, QtyIn = 0, QtyOut = (int)m.QuantityConsumed, User = "System" });
-
-                    var finishedGoodsProduction = db.WorkOrders
-                        .Where(wo => wo.QuantityProduced > 0 && wo.ActualEndDate.HasValue)
-                        .Include(wo => wo.FinishedGood)
-                        .Select(wo => new { Date = wo.ActualEndDate.Value, Type = "إنتاج مكتمل", Ref = wo.WorkOrderNumber, ProdName = wo.FinishedGood.Name, QtyIn = wo.QuantityProduced, QtyOut = 0, User = "System" });
-
-                    var allMovements = goodsReceipts.Union(salesShipments).Union(productionConsumption).Union(finishedGoodsProduction);
+                    var query = db.StockMovements
+                                  .Include(m => m.Product)
+                                  .Include(m => m.StorageLocation.Warehouse)
+                                  .Include(m => m.User)
+                                  .AsQueryable();
 
                     // تطبيق الفلاتر
                     string searchText = SearchTextBox.Text.ToLower();
                     if (!string.IsNullOrWhiteSpace(searchText))
                     {
-                        allMovements = allMovements.Where(m => m.Ref.ToLower().Contains(searchText) || m.ProdName.ToLower().Contains(searchText));
+                        query = query.Where(m => m.ReferenceDocument.ToLower().Contains(searchText) || m.Product.Name.ToLower().Contains(searchText));
                     }
-                    if (TypeFilterComboBox.SelectedIndex > 0)
+                    if (TypeFilterComboBox.SelectedIndex > 0 && TypeFilterComboBox.SelectedItem is StockMovementType type)
                     {
-                        string type = TypeFilterComboBox.SelectedItem.ToString();
-                        allMovements = allMovements.Where(m => m.Type == type);
+                        query = query.Where(m => m.MovementType == type);
                     }
-                    // (يمكن إضافة فلتر التاريخ هنا بنفس الطريقة)
+                    if (ProductFilterComboBox.SelectedIndex > 0)
+                    {
+                        int productId = (int)ProductFilterComboBox.SelectedValue;
+                        query = query.Where(m => m.ProductId == productId);
+                    }
+                    if (WarehouseFilterComboBox.SelectedIndex > 0)
+                    {
+                        int warehouseId = (int)WarehouseFilterComboBox.SelectedValue;
+                        query = query.Where(m => m.StorageLocation.WarehouseId == warehouseId);
+                    }
+                    if (FromDatePicker.SelectedDate.HasValue)
+                    {
+                        query = query.Where(m => m.MovementDate.Date >= FromDatePicker.SelectedDate.Value.Date);
+                    }
+                    if (ToDatePicker.SelectedDate.HasValue)
+                    {
+                        query = query.Where(m => m.MovementDate.Date <= ToDatePicker.SelectedDate.Value.Date);
+                    }
 
-                    _totalItems = allMovements.Count();
-                    MovementsDataGrid.ItemsSource = allMovements.OrderByDescending(m => m.Date).Skip((_currentPage - 1) * _pageSize).Take(_pageSize).ToList();
+                    _totalItems = query.Count();
+
+                    var movements = query.OrderByDescending(m => m.MovementDate)
+                                         .Skip((_currentPage - 1) * _pageSize)
+                                         .Take(_pageSize)
+                                         .ToList();
+
+                    var viewModels = movements.Select(m => new StockMovementViewModel
+                    {
+                        Date = m.MovementDate,
+                        MovementType = m.MovementType,
+                        ReferenceNumber = m.ReferenceDocument,
+                        ProductName = m.Product.Name,
+                        WarehouseName = m.StorageLocation.Warehouse.Name,
+                        StorageLocationName = m.StorageLocation.Name,
+                        QuantityIn = (m.MovementType == StockMovementType.PurchaseReceipt || m.MovementType == StockMovementType.FinishedGoodsProduction || m.MovementType == StockMovementType.AdjustmentIncrease || m.MovementType == StockMovementType.TransferIn || m.MovementType == StockMovementType.SalesReturn) ? m.Quantity : 0,
+                        QuantityOut = (m.MovementType == StockMovementType.SalesShipment || m.MovementType == StockMovementType.ProductionConsumption || m.MovementType == StockMovementType.AdjustmentDecrease || m.MovementType == StockMovementType.TransferOut || m.MovementType == StockMovementType.PurchaseReturn) ? m.Quantity : 0,
+                        UserName = m.User?.Username ?? "System"
+                    }).ToList();
+
+                    MovementsDataGrid.ItemsSource = viewModels;
                     UpdatePageInfo();
                 }
             }

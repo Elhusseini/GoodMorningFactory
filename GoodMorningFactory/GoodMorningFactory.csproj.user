@@ -2,16 +2,40 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <ItemGroup>
+    <Compile Update="UI\Views\AccountingPeriodsView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="UI\Views\AccountsPayableAgingView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="UI\Views\AddEditBudgetWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\AddEditCostCenterWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="UI\Views\AddEditEmployeeWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\AddEditFixedAssetWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\AddEditInventoryCountWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\AddEditLeadWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\AddEditLeaveTypeWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\AddEditPriceListWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\AddEditRoleWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\AddEditStorageLocationWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\AddEditUomWindow.xaml.cs">
@@ -26,25 +50,67 @@
     <Compile Update="UI\Views\AddManualAttendanceWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="UI\Views\ApprovalWorkflowsView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="UI\Views\AttendanceView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\AuditTrailView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\BankReconciliationView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="UI\Views\BudgetsView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\CostCentersView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\CrmView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="UI\Views\EmployeesView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\EnterTrackingDataWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\FinancialDashboardView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="UI\Views\FirstTimeSetupWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\FixedAssetsView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="UI\Views\HRDashboardView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\InventoryCountsView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\LeaveManagementView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="UI\Views\LeaveTypesView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\LowStockNotificationsView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="UI\Views\ManagePermissionsWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\ManageProductPricesWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\MRPView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\MyApprovalsView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\PayrollView.xaml.cs">
@@ -59,10 +125,34 @@
     <Compile Update="UI\Views\ProductStockHistoryWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="UI\Views\QuickStockAdjustWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\RecordLaborWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="UI\Views\RecordSalePaymentWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\RolesView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\RunDepreciationWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\SelectTrackingDataWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\SerialNumbersView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\StockTransfersView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\StockTransferWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UI\Views\TrialBalanceView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\UnitsOfMeasureView.xaml.cs">
@@ -219,9 +309,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\ReportsView.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="UI\Views\SalesDashboardView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="UI\Views\SalesOrdersView.xaml.cs">

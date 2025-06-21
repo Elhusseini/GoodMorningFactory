@@ -1,12 +1,10 @@
-﻿<!-- UI/Views/MainWindow.xaml -->
-<!-- *** الكود الكامل لملف تصميم النافذة الرئيسية مع جميع القوائم *** -->
-<Window x:Class="GoodMorningFactory.UI.Views.MainWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" 
-        Title="نظام مصنع صباح الخير لإدارة الملابس" Height="720" Width="1280"
+        Title="نظام مصنع صباح الخير لإدارة الملابس" Height="768" Width="1366"
         WindowStartupLocation="CenterScreen" Background="{DynamicResource PrimaryBackground}" 
         Foreground="{DynamicResource PrimaryText}"
         FlowDirection="RightToLeft">
@@ -21,6 +19,7 @@
             <!-- قائمة ملف -->
             <MenuItem Header="_ملف">
                 <MenuItem x:Name="DashboardMenuItem" Header="_لوحة التحكم الرئيسية" Click="DashboardMenuItem_Click"/>
+                <MenuItem x:Name="MyApprovalsMenuItem" Header="_صندوق الموافقات" Click="MyApprovalsMenuItem_Click"/>
                 <Separator/>
                 <MenuItem x:Name="LogoutMenuItem" Header="_تسجيل الخروج" Click="LogoutMenuItem_Click"/>
                 <Separator/>
@@ -40,6 +39,11 @@
                 <MenuItem x:Name="ManageWarehousesMenuItem" Header="_إدارة المخازن" Click="ManageWarehousesMenuItem_Click"/>
             </MenuItem>
 
+            <!-- قائمة إدارة علاقات العملاء -->
+            <MenuItem x:Name="CrmMenuItem" Header="_إدارة علاقات العملاء">
+                <MenuItem x:Name="ManageCrmMenuItem" Header="_إدارة العملاء والفرص" Click="ManageCrmMenuItem_Click"/>
+            </MenuItem>
+
             <!-- قائمة المبيعات -->
             <MenuItem x:Name="SalesMenuItem" Header="_المبيعات">
                 <MenuItem x:Name="SalesDashboardMenuItem" Header="_لوحة معلومات المبيعات" Click="SalesDashboardMenuItem_Click"/>
@@ -48,6 +52,7 @@
                 <MenuItem x:Name="ManageOrdersMenuItem" Header="_أوامر البيع" Click="ManageOrdersMenuItem_Click"/>
                 <MenuItem x:Name="ManageShipmentsMenuItem" Header="_إدارة الشحنات" Click="ManageShipmentsMenuItem_Click"/>
                 <MenuItem x:Name="ManageInvoicesMenuItem" Header="_فواتير المبيعات" Click="ManageInvoicesMenuItem_Click"/>
+                <MenuItem x:Name="ManageSalesReturnsMenuItem" Header="_مرتجعات المبيعات" Click="ManageSalesReturnsMenuItem_Click"/>
             </MenuItem>
 
             <!-- قائمة المشتريات -->
@@ -65,14 +70,21 @@
                 <Separator/>
                 <MenuItem x:Name="BomMenuItem" Header="_قائمة مكونات المنتج (BOM)" Click="BomMenuItem_Click"/>
                 <MenuItem x:Name="WorkOrdersMenuItem" Header="_إدارة أوامر العمل" Click="WorkOrdersMenuItem_Click"/>
+                <Separator/>
+                <MenuItem x:Name="MRPMenuItem" Header="_تخطيط متطلبات المواد (MRP)" Click="MRPMenuItem_Click"/>
             </MenuItem>
 
             <!-- قائمة المخزون -->
-            <MenuItem x:Name="InventoryMenuItem" Header="_المخزون">
-                <MenuItem x:Name="InventoryDashboardMenuItem" Header="_لوحة معلومات المخزون" Click="InventoryDashboardMenuItem_Click"/>
+            <MenuItem x:Name="InventoryMenuItem" Header="المخزون">
+                <MenuItem Header="لوحة معلومات المخزون" Click="InventoryDashboardMenuItem_Click"/>
+                <MenuItem Header="أرصدة المخزون" Click="ManageInventoryMenuItem_Click"/>
+                <MenuItem Header="حركات المخزون" Click="StockMovementsMenuItem_Click"/>
+                <MenuItem Header="التحويلات المخزنية" Click="StockTransfersMenuItem_Click"/>
+                <MenuItem x:Name="InventoryCountsMenuItem" Header="أوامر الجرد" Click="InventoryCountsMenuItem_Click"/>
                 <Separator/>
-                <MenuItem x:Name="ManageInventoryMenuItem" Header="_قائمة مستويات المخزون" Click="ManageInventoryMenuItem_Click"/>
-                <MenuItem x:Name="StockMovementsMenuItem" Header="_سجل حركات المخزون" Click="StockMovementsMenuItem_Click"/>
+                <MenuItem x:Name="SerialNumbersMenuItem" Header="تتبع الأرقام التسلسلية" Click="SerialNumbersMenuItem_Click"/>
+                <Separator/>
+                <MenuItem x:Name="LowStockMenuItem" Header="تنبيهات انخفاض المخزون" Click="LowStockNotificationsMenuItem_Click"/>
             </MenuItem>
 
             <!-- قائمة الموارد البشرية -->
@@ -82,21 +94,25 @@
                 <MenuItem x:Name="ManageEmployeesMenuItem" Header="_إدارة الموظفين" Click="ManageEmployeesMenuItem_Click"/>
                 <MenuItem x:Name="ManageAttendanceMenuItem" Header="_إدارة الحضور والانصراف" Click="ManageAttendanceMenuItem_Click"/>
                 <MenuItem x:Name="ManageLeavesMenuItem" Header="_إدارة الإجازات" Click="ManageLeavesMenuItem_Click"/>
+                <MenuItem x:Name="LeaveTypesMenuItem" Header="أنواع الأجازات" Click="LeaveTypesMenuItem_Click"/>
                 <Separator/>
                 <MenuItem x:Name="PayrollMenuItem" Header="_إدارة الرواتب" Click="PayrollMenuItem_Click"/>
             </MenuItem>
 
             <!-- قائمة الحسابات -->
-            <MenuItem x:Name="FinancialsMenuItem" Header="_الحسابات">
-                <MenuItem x:Name="FinancialDashboardMenuItem" Header="_لوحة المعلومات المالية" Click="FinancialDashboardMenuItem_Click"/>
+            <MenuItem x:Name="FinancialsMenuItem" Header="الحسابات">
+                <MenuItem Header="لوحة المعلومات المالية" Click="FinancialDashboardMenuItem_Click"/>
+                <MenuItem Header="دليل الحسابات" Click="ChartOfAccountsMenuItem_Click"/>
+                <MenuItem Header="القيود اليومية" Click="JournalVouchersMenuItem_Click"/>
+                <MenuItem Header="الذمم المدينة (مقبوضات)" Click="AccountsReceivableMenuItem_Click"/>
+                <MenuItem Header="الذمم الدائنة (مدفوعات)" Click="AccountsPayableMenuItem_Click"/>
+                <MenuItem Header="التسوية البنكية" Click="BankReconciliationMenuItem_Click"/>
                 <Separator/>
-                <MenuItem x:Name="ChartOfAccountsMenuItem" Header="_دليل الحسابات" Click="ChartOfAccountsMenuItem_Click"/>
-                <MenuItem x:Name="JournalVouchersMenuItem" Header="_القيود اليومية" Click="JournalVouchersMenuItem_Click"/>
+                <MenuItem Header="الأصول الثابتة" Click="FixedAssetsMenuItem_Click"/>
+                <MenuItem Header="مراكز التكلفة" Click="CostCentersMenuItem_Click"/>
+                <MenuItem Header="الموازنات التقديرية" Click="BudgetsMenuItem_Click"/>
                 <Separator/>
-                <MenuItem x:Name="AccountsReceivableMenuItem" Header="_ذمم العملاء (A/R)" Click="AccountsReceivableMenuItem_Click"/>
-                <MenuItem x:Name="AccountsPayableMenuItem" Header="_ذمم الموردين (A/P)" Click="AccountsPayableMenuItem_Click"/>
-                <Separator/>
-                <MenuItem x:Name="BankReconciliationMenuItem" Header="_التسوية البنكية" Click="BankReconciliationMenuItem_Click"/>
+                <MenuItem Header="الفترات المحاسبية" Click="AccountingPeriodsMenuItem_Click"/>
             </MenuItem>
 
             <!-- قائمة التقارير -->
@@ -105,9 +121,15 @@
             <!-- قائمة الإعدادات والأمان -->
             <MenuItem x:Name="SettingsMenuItem" Header="_الإعدادات">
                 <MenuItem x:Name="SystemSettingsMenuItem" Header="إعدادات النظام" Click="SettingsMenuItem_Click"/>
+            </MenuItem>
+
+            <MenuItem x:Name="SecurityMenuItem" Header="_الأمان">
+                <MenuItem x:Name="ManageUsersMenuItem" Header="_إدارة المستخدمين" Click="ManageUsersMenuItem_Click"/>
+                <MenuItem x:Name="ManageRolesMenuItem" Header="_إدارة الأدوار والصلاحيات" Click="ManageRolesMenuItem_Click"/>
+                <MenuItem x:Name="ManageDepartmentsMenuItem" Header="_إدارة الأقسام" Click="DepartmentsButton_Click"/>
                 <Separator/>
-                <MenuItem x:Name="ManageUsersMenuItem" Header="إدارة المستخدمين" Click="ManageUsersMenuItem_Click"/>
-                <MenuItem x:Name="ManageRolesMenuItem" Header="إدارة الأدوار والصلاحيات" Click="ManageRolesMenuItem_Click"/>
+                <MenuItem x:Name="AuditTrailMenuItem" Header="سجل تدقيق النظام" Click="AuditTrailMenuItem_Click"/>
+                <MenuItem x:Name="ApprovalWorkflowsMenuItem" Header="إدارة دورات الموافقات" Click="ApprovalWorkflowsMenuItem_Click"/>
             </MenuItem>
 
             <!-- قائمة المساعدة -->

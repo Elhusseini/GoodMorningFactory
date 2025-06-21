@@ -1,6 +1,7 @@
 ﻿// UI/Views/ProductStockHistoryWindow.xaml.cs
-// *** ملف جديد: الكود الخلفي لنافذة سجل حركات المنتج ***
+// *** تحديث: تم إصلاح الكود ليعتمد على الـ ViewModel المركزي والجدول الجديد ***
 using GoodMorningFactory.Data;
+using GoodMorningFactory.Data.Models;
 using GoodMorningFactory.UI.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -31,15 +32,29 @@ namespace GoodMorningFactory.UI.Views
 
                     ProductNameTextBlock.Text = $"سجل حركات المنتج: {product.Name}";
 
-                    // جلب جميع أنواع الحركات المتعلقة بالمنتج المحدد فقط
-                    var goodsReceipts = db.GoodsReceiptNoteItems.Where(i => i.ProductId == _productId).Include(i => i.GoodsReceiptNote).Select(i => new StockMovementViewModel { Date = i.GoodsReceiptNote.ReceiptDate, TransactionType = "استلام بضاعة", ReferenceNumber = i.GoodsReceiptNote.GRNNumber, ProductName = product.Name, QuantityIn = i.QuantityReceived, QuantityOut = 0 });
-                    var salesShipments = db.ShipmentItems.Where(i => i.ProductId == _productId).Include(i => i.Shipment).Select(i => new StockMovementViewModel { Date = i.Shipment.ShipmentDate, TransactionType = "مبيعات", ReferenceNumber = i.Shipment.ShipmentNumber, ProductName = product.Name, QuantityIn = 0, QuantityOut = i.Quantity });
-                    var productionConsumption = db.WorkOrderMaterials.Where(m => m.RawMaterialId == _productId).Include(m => m.WorkOrder).Select(m => new StockMovementViewModel { Date = m.WorkOrder.ActualStartDate ?? m.WorkOrder.PlannedStartDate, TransactionType = "صرف إنتاج", ReferenceNumber = m.WorkOrder.WorkOrderNumber, ProductName = product.Name, QuantityIn = 0, QuantityOut = (int)m.QuantityConsumed });
-                    var finishedGoodsProduction = db.WorkOrders.Where(wo => wo.FinishedGoodId == _productId && wo.QuantityProduced > 0 && wo.ActualEndDate.HasValue).Select(wo => new StockMovementViewModel { Date = wo.ActualEndDate.Value, TransactionType = "إنتاج مكتمل", ReferenceNumber = wo.WorkOrderNumber, ProductName = product.Name, QuantityIn = wo.QuantityProduced, QuantityOut = 0 });
+                    // --- بداية الإصلاح: الاستعلام من جدول StockMovements المركزي ---
+                    var movements = db.StockMovements
+                        .Where(m => m.ProductId == _productId)
+                        .Include(m => m.StorageLocation.Warehouse)
+                        .Include(m => m.User)
+                        .OrderByDescending(m => m.MovementDate)
+                        .ToList();
 
-                    var allMovements = goodsReceipts.Union(salesShipments).Union(productionConsumption).Union(finishedGoodsProduction);
+                    var viewModels = movements.Select(m => new StockMovementViewModel
+                    {
+                        Date = m.MovementDate,
+                        MovementType = m.MovementType,
+                        ReferenceNumber = m.ReferenceDocument,
+                        ProductName = product.Name,
+                        WarehouseName = m.StorageLocation.Warehouse.Name,
+                        StorageLocationName = m.StorageLocation.Name,
+                        QuantityIn = (m.MovementType == StockMovementType.PurchaseReceipt || m.MovementType == StockMovementType.FinishedGoodsProduction || m.MovementType == StockMovementType.AdjustmentIncrease || m.MovementType == StockMovementType.TransferIn || m.MovementType == StockMovementType.SalesReturn) ? m.Quantity : 0,
+                        QuantityOut = (m.MovementType == StockMovementType.SalesShipment || m.MovementType == StockMovementType.ProductionConsumption || m.MovementType == StockMovementType.AdjustmentDecrease || m.MovementType == StockMovementType.TransferOut || m.MovementType == StockMovementType.PurchaseReturn) ? m.Quantity : 0,
+                        UserName = m.User?.Username ?? "System"
+                    }).ToList();
 
-                    HistoryDataGrid.ItemsSource = allMovements.OrderByDescending(m => m.Date).ToList();
+                    HistoryDataGrid.ItemsSource = viewModels;
+                    // --- نهاية الإصلاح ---
                 }
             }
             catch (Exception ex)

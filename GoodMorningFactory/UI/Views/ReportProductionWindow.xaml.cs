@@ -1,5 +1,6 @@
 ﻿// UI/Views/ReportProductionWindow.xaml.cs
-// *** تحديث: تم إضافة منطق تسجيل الهدر ***
+// *** تحديث: إضافة منطق تسجيل حركة "إدخال إنتاج تام" في السجل المركزي ***
+using GoodMorningFactory.Core.Services;
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -80,19 +81,46 @@ namespace GoodMorningFactory.UI.Views
                 return;
             }
 
-            try
+            using (var db = new DatabaseContext())
+            using (var transaction = db.Database.BeginTransaction())
             {
-                using (var db = new DatabaseContext())
+                try
                 {
-                    // --- تحديث المخزون (فقط للكميات السليمة) ---
-                    if (producedQuantity > 0)
+                    // نفترض وجود موقع تخزين افتراضي للمنتج النهائي
+                    var defaultLocation = db.StorageLocations.FirstOrDefault();
+                    if (defaultLocation == null)
                     {
-                        var inventory = db.Inventories.FirstOrDefault(i => i.ProductId == _workOrder.FinishedGoodId);
-                        if (inventory != null) { inventory.Quantity += producedQuantity; }
-                        else { db.Inventories.Add(new Inventory { ProductId = _workOrder.FinishedGoodId, Quantity = producedQuantity }); }
+                        throw new Exception("لا يوجد موقع تخزين افتراضي معرف في النظام لاستلام المنتجات النهائية.");
                     }
 
-                    // --- تسجيل الهدر ---
+                    if (producedQuantity > 0)
+                    {
+                        var inventory = db.Inventories.FirstOrDefault(i => i.ProductId == _workOrder.FinishedGoodId && i.StorageLocationId == defaultLocation.Id);
+                        if (inventory != null)
+                        {
+                            inventory.Quantity += producedQuantity;
+                        }
+                        else
+                        {
+                            db.Inventories.Add(new Inventory { ProductId = _workOrder.FinishedGoodId, StorageLocationId = defaultLocation.Id, Quantity = producedQuantity });
+                        }
+
+                        // --- بداية الإضافة: تسجيل حركة إدخال الإنتاج ---
+                        var product = db.Products.Find(_workOrder.FinishedGoodId);
+                        db.StockMovements.Add(new StockMovement
+                        {
+                            ProductId = _workOrder.FinishedGoodId,
+                            StorageLocationId = defaultLocation.Id,
+                            MovementDate = DateTime.Now,
+                            MovementType = StockMovementType.FinishedGoodsProduction,
+                            Quantity = producedQuantity,
+                            UnitCost = product.AverageCost, // التكلفة ستكون قد تم تحديثها من عمليات سابقة
+                            ReferenceDocument = _workOrder.WorkOrderNumber,
+                            UserId = CurrentUserService.LoggedInUser?.Id
+                        });
+                        // --- نهاية الإضافة ---
+                    }
+
                     if (scrappedQuantity > 0)
                     {
                         db.WorkOrderScraps.Add(new WorkOrderScrap
@@ -104,14 +132,12 @@ namespace GoodMorningFactory.UI.Views
                         });
                     }
 
-                    // --- تحديث أمر العمل ---
                     var orderToUpdate = db.WorkOrders.Find(_workOrderId);
                     if (orderToUpdate != null)
                     {
                         orderToUpdate.QuantityProduced += producedQuantity;
                         orderToUpdate.QuantityScrapped += scrappedQuantity;
 
-                        // التحقق مما إذا كان الأمر قد اكتمل (بناءً على الكمية المطلوبة وليس المنتجة فقط)
                         if ((orderToUpdate.QuantityProduced + orderToUpdate.QuantityScrapped) >= orderToUpdate.QuantityToProduce)
                         {
                             orderToUpdate.Status = WorkOrderStatus.Completed;
@@ -120,13 +146,20 @@ namespace GoodMorningFactory.UI.Views
                     }
 
                     db.SaveChanges();
+                    transaction.Commit();
                     MessageBox.Show("تم تسجيل الإنتاج بنجاح.", "نجاح", MessageBoxButton.OK, MessageBoxImage.Information);
                     this.DialogResult = true;
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"فشلت عملية تسجيل الإنتاج: {ex.Message}", "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    string errorMessage = $"فشلت عملية تسجيل الإنتاج: {ex.Message}";
+                    if (ex.InnerException != null)
+                    {
+                        errorMessage += $"\nالتفاصيل: {ex.InnerException.Message}";
+                    }
+                    MessageBox.Show(errorMessage, "خطأ", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }

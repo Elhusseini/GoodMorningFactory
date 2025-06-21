@@ -1,5 +1,5 @@
 ﻿// UI/Views/SalesDashboardView.xaml.cs
-// *** الكود الكامل للكود الخلفي للوحة معلومات المبيعات ***
+// *** تحديث: تم إضافة منطق حساب قمع المبيعات ***
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using GoodMorningFactory.UI.ViewModels;
@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using GoodMorningFactory.Core.Services;
 
 namespace GoodMorningFactory.UI.Views
 {
@@ -19,8 +20,8 @@ namespace GoodMorningFactory.UI.Views
         public SalesDashboardView()
         {
             InitializeComponent();
-            SalesAxisY.LabelFormatter = value => value.ToString("C", new CultureInfo("ar-KW"));
-            CategorySalesAxisY.LabelFormatter = value => value.ToString("C", new CultureInfo("ar-KW"));
+            SalesAxisY.LabelFormatter = value => $"{value:N0} {AppSettings.DefaultCurrencySymbol}";
+            CategorySalesAxisY.LabelFormatter = value => $"{value:N0} {AppSettings.DefaultCurrencySymbol}";
             LoadDashboardData();
         }
 
@@ -58,20 +59,21 @@ namespace GoodMorningFactory.UI.Views
                         var lastDay = firstDay.AddMonths(1).AddDays(-1);
                         var monthlyTotal = db.Sales.Where(s => s.SaleDate >= firstDay && s.SaleDate <= lastDay).Sum(s => (decimal?)s.TotalAmount) ?? 0;
                         monthlySalesData.Add(monthlyTotal);
-                        monthLabels.Add(firstDay.ToString("MMM yy", new CultureInfo("ar-KW")));
+                        monthLabels.Add(firstDay.ToString("MMM yy", new CultureInfo("ar-EG")));
                     }
                     viewModel.MonthlySalesSeries = new SeriesCollection { new ColumnSeries { Title = "إجمالي المبيعات", Values = monthlySalesData } };
                     viewModel.MonthLabels = monthLabels.ToArray();
 
                     // --- إعداد بيانات الرسم البياني للمبيعات حسب الفئة ---
-                    var categorySales = db.SaleItems.Include(si => si.Product.Category).Where(si => si.Sale.SaleDate.Year == today.Year).GroupBy(si => si.Product.Category.Name).Select(g => new { CategoryName = g.Key, Total = g.Sum(si => si.Quantity * si.UnitPrice) }).ToList();
+                    var categorySales = db.SaleItems.Include(si => si.Product.Category).Where(si => si.Sale.SaleDate.Year == today.Year).GroupBy(si => si.Product.Category.Name).Select(g => new { CategoryName = g.Key ?? "غير مصنف", Total = g.Sum(si => si.Quantity * si.UnitPrice) }).ToList();
                     viewModel.SalesByCategorySeries = new SeriesCollection { new RowSeries { Title = "المبيعات", Values = new ChartValues<decimal>(categorySales.Select(c => c.Total)) } };
                     viewModel.CategoryLabels = categorySales.Select(c => c.CategoryName).ToArray();
 
-                    // --- حساب بيانات قمع المبيعات ---
+                    // --- بداية التحديث: حساب بيانات قمع المبيعات ---
                     viewModel.QuotationsCount = db.SalesQuotations.Count(q => q.QuotationDate >= startOfMonth && q.QuotationDate <= endOfMonth);
                     viewModel.OrdersCount = db.SalesOrders.Count(o => o.OrderDate >= startOfMonth && o.OrderDate <= endOfMonth);
                     viewModel.InvoicesCount = db.Sales.Count(i => i.SaleDate >= startOfMonth && i.SaleDate <= endOfMonth);
+                    // --- نهاية التحديث ---
 
                     this.DataContext = viewModel;
                 }

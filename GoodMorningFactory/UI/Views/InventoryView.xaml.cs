@@ -1,6 +1,7 @@
 ﻿// UI/Views/InventoryView.xaml.cs
-// *** الكود الكامل للكود الخلفي لواجهة المخزون مع جميع التحسينات ***
+// *** تحديث: تفعيل زر التعديل السريع وربطه بالنافذة الجديدة ***
 using GoodMorningFactory.Data;
+using GoodMorningFactory.Data.Models;
 using GoodMorningFactory.UI.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -33,6 +34,11 @@ namespace GoodMorningFactory.UI.Views
                 categories.AddRange(db.Categories.ToList());
                 CategoryFilterComboBox.ItemsSource = categories;
                 CategoryFilterComboBox.SelectedIndex = 0;
+
+                var warehouses = new List<object> { new { Name = "الكل", Id = 0 } };
+                warehouses.AddRange(db.Warehouses.ToList());
+                WarehouseFilterComboBox.ItemsSource = warehouses;
+                WarehouseFilterComboBox.SelectedIndex = 0;
             }
 
             var statuses = new List<object> { "الكل" };
@@ -47,37 +53,54 @@ namespace GoodMorningFactory.UI.Views
             {
                 using (var db = new DatabaseContext())
                 {
-                    var query = from p in db.Products.Include(p => p.Category)
-                                join i in db.Inventories on p.Id equals i.ProductId into gj
-                                from subInv in gj.DefaultIfEmpty()
-                                select new InventoryViewModel
-                                {
-                                    ProductId = p.Id,
-                                    ProductCode = p.ProductCode,
-                                    ProductName = p.Name,
-                                    CategoryName = p.Category.Name ?? "غير مصنف",
-                                    QuantityOnHand = subInv == null ? 0 : subInv.Quantity,
-                                    ReorderLevel = subInv == null ? 0 : subInv.ReorderLevel
-                                };
+                    var query = db.Inventories
+                        .Include(i => i.Product).ThenInclude(p => p.Category)
+                        .Include(i => i.StorageLocation).ThenInclude(sl => sl.Warehouse)
+                        .AsQueryable();
 
-                    // تطبيق الفلاتر
                     string searchText = SearchTextBox.Text.ToLower();
                     if (!string.IsNullOrWhiteSpace(searchText))
                     {
-                        query = query.Where(i => i.ProductName.ToLower().Contains(searchText) || i.ProductCode.ToLower().Contains(searchText));
+                        query = query.Where(i => i.Product.Name.ToLower().Contains(searchText) || i.Product.ProductCode.ToLower().Contains(searchText));
                     }
+
+                    if (WarehouseFilterComboBox.SelectedIndex > 0)
+                    {
+                        int warehouseId = (int)WarehouseFilterComboBox.SelectedValue;
+                        query = query.Where(i => i.StorageLocation.WarehouseId == warehouseId);
+                    }
+
                     if (CategoryFilterComboBox.SelectedIndex > 0)
                     {
                         int categoryId = (int)CategoryFilterComboBox.SelectedValue;
-                        query = query.Where(i => db.Products.First(p => p.Id == i.ProductId).CategoryId == categoryId);
-                    }
-                    if (StatusFilterComboBox.SelectedItem != null && StatusFilterComboBox.SelectedItem is StockStatus status)
-                    {
-                        query = query.Where(i => i.Status == status);
+                        query = query.Where(i => i.Product.CategoryId == categoryId);
                     }
 
-                    _totalItems = query.Count();
-                    InventoryDataGrid.ItemsSource = query.OrderBy(i => i.ProductName).Skip((_currentPage - 1) * _pageSize).Take(_pageSize).ToList();
+                    var allItems = query
+                        .Select(i => new InventoryViewModel
+                        {
+                            ProductId = i.ProductId,
+                            StorageLocationId = i.StorageLocationId,
+                            ProductCode = i.Product.ProductCode,
+                            ProductName = i.Product.Name,
+                            CategoryName = i.Product.Category.Name ?? "غير مصنف",
+                            WarehouseName = i.StorageLocation.Warehouse.Name,
+                            StorageLocationName = i.StorageLocation.Name,
+                            QuantityOnHand = i.Quantity,
+                            QuantityReserved = i.QuantityReserved,
+                            ReorderLevel = i.ReorderLevel,
+                            MinStockLevel = i.MinStockLevel,
+                            MaxStockLevel = i.MaxStockLevel,
+                            AverageCost = i.Product.AverageCost
+                        }).ToList();
+
+                    if (StatusFilterComboBox.SelectedItem != null && StatusFilterComboBox.SelectedItem is StockStatus status)
+                    {
+                        allItems = allItems.Where(i => i.Status == status).ToList();
+                    }
+
+                    _totalItems = allItems.Count();
+                    InventoryDataGrid.ItemsSource = allItems.OrderBy(i => i.ProductName).Skip((_currentPage - 1) * _pageSize).Take(_pageSize).ToList();
                     UpdatePageInfo();
                 }
             }
@@ -100,17 +123,22 @@ namespace GoodMorningFactory.UI.Views
         private void NextPageButton_Click(object sender, RoutedEventArgs e) { if (_currentPage < (int)Math.Ceiling((double)_totalItems / _pageSize)) { _currentPage++; LoadInventoryReport(); } }
         private void Filter_Changed(object sender, SelectionChangedEventArgs e) { if (this.IsLoaded) { _currentPage = 1; LoadInventoryReport(); } }
         private void Filter_KeyUp(object sender, KeyEventArgs e) { if (e.Key == Key.Enter) { _currentPage = 1; LoadInventoryReport(); } }
-        // --- بداية التحديث ---
-        private void AdjustStockButton_Click(object sender, RoutedEventArgs e)
+
+        // --- بداية التحديث: تفعيل زر التعديل السريع ---
+        private void QuickAdjustButton_Click(object sender, RoutedEventArgs e)
         {
-            var adjustWindow = new AdjustStockWindow();
-            if (adjustWindow.ShowDialog() == true)
+            if ((sender as Button)?.DataContext is InventoryViewModel item)
             {
-                LoadInventoryReport(); // تحديث القائمة بعد إجراء التعديل
+                var adjustWindow = new QuickStockAdjustWindow(item.ProductId, item.StorageLocationId);
+                if (adjustWindow.ShowDialog() == true)
+                {
+                    // تحديث القائمة بعد إغلاق نافذة التعديل بنجاح
+                    LoadInventoryReport();
+                }
             }
         }
         // --- نهاية التحديث ---
-        // --- بداية التحديث ---
+
         private void ViewHistoryButton_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as Button)?.DataContext is InventoryViewModel item)
@@ -119,6 +147,5 @@ namespace GoodMorningFactory.UI.Views
                 historyWindow.Show();
             }
         }
-        // --- نهاية التحديث ---
     }
 }

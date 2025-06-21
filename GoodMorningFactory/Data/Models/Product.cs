@@ -1,14 +1,38 @@
 ﻿// Data/Models/Product.cs
-// *** تحديث: تم إصلاح حقل وحدة القياس ليكون مفتاحاً أجنبياً ***
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace GoodMorningFactory.Data.Models
 {
-    public enum ProductType { RawMaterial, FinishedGood }
+    // --- بداية الإضافة: تعريف أنواع التتبع ---
+    public enum ProductTrackingMethod
+    {
+        [Description("لا يوجد تتبع")]
+        None,
+        [Description("حسب الرقم التسلسلي")]
+        BySerialNumber,
+        [Description("حسب رقم الدفعة")]
+        ByLotNumber
+    }
+    // --- نهاية الإضافة ---
+
+    public enum ProductType
+    {
+        [Description("منتج نهائي")]
+        FinishedGood,
+        [Description("مادة خام")]
+        RawMaterial,
+        [Description("منتج نصف مصنع")]
+        WorkInProgress,
+        [Description("خدمة")]
+        Service
+    }
 
     public class Product
     {
+        // --- معلومات أساسية ---
         [Key]
         public int Id { get; set; }
 
@@ -22,26 +46,53 @@ namespace GoodMorningFactory.Data.Models
 
         public string? Description { get; set; }
 
+        [MaxLength(100)]
+        public string? Barcode { get; set; }
+
         [Required]
         public ProductType ProductType { get; set; }
 
+        // --- بداية الإضافة: خاصية طريقة التتبع ---
+        [Required]
+        public ProductTrackingMethod TrackingMethod { get; set; } = ProductTrackingMethod.None;
+        // --- نهاية الإضافة ---
+
+        public bool IsActive { get; set; } = true;
+
+        // --- التصنيف والوحدة ---
         [Required]
         public int CategoryId { get; set; }
         public virtual Category Category { get; set; }
 
-        // --- بداية الإصلاح: تحويل وحدة القياس إلى علاقة ---
         public int? UnitOfMeasureId { get; set; }
         public virtual UnitOfMeasure UnitOfMeasure { get; set; }
-        // --- نهاية الإصلاح ---
+
+        // --- التسعير والتكلفة ---
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal PurchasePrice { get; set; }
 
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal PurchasePrice { get; set; } // سعر التكلفة/الشراء
+        public decimal SalePrice { get; set; }
 
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal SalePrice { get; set; } // سعر البيع
+        [Column(TypeName = "decimal(18, 4)")]
+        public decimal AverageCost { get; set; }
 
-        public byte[]? ProductImage { get; set; } // حقل لتخزين صورة المنتج
+        [Required]
+        public int CurrencyId { get; set; }
+        public virtual Currency Currency { get; set; }
 
-        public bool IsActive { get; set; } = true;
+        public int? TaxRuleId { get; set; }
+        public virtual TaxRule TaxRule { get; set; }
+
+        // --- معلومات إضافية ---
+        public byte[]? ProductImage { get; set; }
+
+        public int? DefaultSupplierId { get; set; }
+        public virtual Supplier DefaultSupplier { get; set; }
+
+        public int LeadTimeDays { get; set; }
+
+        // --- العلاقات ---
+        public virtual ICollection<PurchaseRequisitionItem> PurchaseRequisitionItems { get; set; } = new List<PurchaseRequisitionItem>();
     }
 }

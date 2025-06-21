@@ -31,17 +31,25 @@ namespace GoodMorningFactory.UI.Views
                     var inventoryItems = db.Inventories.Include(i => i.Product).ThenInclude(p => p.Category).ToList();
 
                     // --- حساب مؤشرات الأداء الرئيسية ---
+                    var allProducts = db.Products.Include(p => p.Category).ToList();
+                    viewModel.OutOfStockItems = allProducts.Count(p =>
+                    {
+                        var inv = inventoryItems.FirstOrDefault(i => i.ProductId == p.Id);
+                        return inv == null || inv.Quantity <= 0;
+                    });
+                    viewModel.LowStockItems = allProducts.Count(p =>
+                    {
+                        var inv = inventoryItems.FirstOrDefault(i => i.ProductId == p.Id);
+                        return inv != null && inv.Quantity > 0 && inv.Quantity <= inv.ReorderLevel;
+                    });
                     viewModel.TotalInventoryValue = inventoryItems.Sum(i => i.Quantity * i.Product.PurchasePrice);
-                    viewModel.LowStockItems = inventoryItems.Count(i => i.Quantity > 0 && i.Quantity <= i.ReorderLevel);
-                    viewModel.OutOfStockItems = inventoryItems.Count(i => i.Quantity <= 0);
 
                     // --- إعداد بيانات الرسم البياني ---
-                    var valueByCategory = inventoryItems
-                        .GroupBy(i => i.Product.Category.Name ?? "غير مصنف")
-                        .Select(g => new
-                        {
-                            CategoryName = g.Key,
-                            TotalValue = g.Sum(i => i.Quantity * i.Product.PurchasePrice)
+                    var allCategories = db.Categories.ToList();
+                    var valueByCategory = allCategories
+                        .Select(cat => new {
+                            CategoryName = cat.Name ?? "غير مصنف",
+                            TotalValue = inventoryItems.Where(i => i.Product.CategoryId == cat.Id).Sum(i => i.Quantity * i.Product.PurchasePrice)
                         })
                         .ToList();
 

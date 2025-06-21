@@ -1,11 +1,11 @@
 ﻿// UI/ViewModels/PurchaseViewModel.cs
-// *** ملف جديد: ViewModel خاص بعرض فواتير الموردين مع الرصيد المستحق ***
+// *** تحديث: تمت إضافة خصائص منسقة لعرض العملة بشكل ديناميكي ***
 using GoodMorningFactory.Data.Models;
+using GoodMorningFactory.Core.Services;
 using System;
 
 namespace GoodMorningFactory.UI.ViewModels
 {
-    // هذا الكلاس يرث من كلاس فاتورة الشراء الأصلي ويضيف إليه خاصية الرصيد المحسوب
     public class PurchaseViewModel
     {
         public int Id { get; set; }
@@ -17,7 +17,12 @@ namespace GoodMorningFactory.UI.ViewModels
         public decimal AmountPaid { get; set; }
         public PurchaseInvoiceStatus Status { get; set; }
 
-        // خاصية محسوبة لعرض الرصيد المستحق للمورد
+        // --- بداية التحديث: إضافة خصائص منسقة للعملة ---
+        public string TotalAmountFormatted => $"{TotalAmount:N2} {AppSettings.DefaultCurrencySymbol}";
+        public string AmountPaidFormatted => $"{AmountPaid:N2} {AppSettings.DefaultCurrencySymbol}";
+        public string BalanceDueFormatted => $"{BalanceDue:N2} {AppSettings.DefaultCurrencySymbol}";
+        // --- نهاية التحديث ---
+
         public decimal BalanceDue => TotalAmount - AmountPaid;
     }
 }

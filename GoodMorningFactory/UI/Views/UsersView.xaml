@@ -1,38 +1,115 @@
-﻿<!-- UI/Views/UsersView.xaml -->
-<!-- *** تحديث: تم إصلاح مرجع المحول *** -->
-<UserControl x:Class="GoodMorningFactory.UI.Views.UsersView"
+﻿<UserControl x:Class="GoodMorningFactory.UI.Views.UsersView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GoodMorningFactory.UI.Views"
              xmlns:converters="clr-namespace:GoodMorningFactory.UI.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="800"
-             Background="#F5F5F5" FlowDirection="RightToLeft">
+             d:DesignHeight="600" d:DesignWidth="900"
+             FlowDirection="RightToLeft"
+             FontFamily="Segoe UI">
+
     <UserControl.Resources>
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
         <converters:BooleanToStatusConverter x:Key="BooleanToStatusConverter"/>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
     </UserControl.Resources>
-    <Grid Margin="10">
+
+    <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ToolBarTray Grid.Row="0">
-            <ToolBar>
-                <Button x:Name="AddUserButton" Content="➕ إضافة مستخدم جديد" Margin="5" Padding="5" Click="AddUserButton_Click"/>
-                <Button x:Name="EditUserButton" Content="✏️ تعديل المستخدم المحدد" Margin="5" Padding="5" Click="EditUserButton_Click"/>
-            </ToolBar>
-        </ToolBarTray>
+        <TextBlock Text="إدارة المستخدمين" FontSize="24" FontWeight="Bold" Margin="0,0,0,15" Grid.Row="0"/>
 
-        <DataGrid x:Name="UsersDataGrid" Grid.Row="1" Margin="0,10,0,0"
-                  IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
+        <Border Grid.Row="1" Background="#F5F5F5" CornerRadius="5" Padding="10" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="إضافة مستخدم جديد" Click="AddUserButton_Click" MinWidth="120"/>
+                <TextBlock Text="بحث:" VerticalAlignment="Center" Margin="20,0,5,0"/>
+                <TextBox x:Name="SearchTextBox" Width="200" KeyUp="Filter_KeyUp"/>
+                <TextBlock Text="الحالة:" VerticalAlignment="Center" Margin="20,0,5,0"/>
+                <ComboBox x:Name="StatusFilterComboBox" Width="120" SelectionChanged="Filter_Changed">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+        </Border>
+
+        <DataGrid x:Name="UsersDataGrid" Grid.Row="2" AutoGenerateColumns="False" IsReadOnly="True"
+                  CanUserAddRows="False" Background="White" BorderBrush="#CCCCCC" BorderThickness="1"
+                  HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#E0E0E0">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="اسم المستخدم" Binding="{Binding Username}" Width="*"/>
-                <DataGridTextColumn Header="الدور" Binding="{Binding Role.Name}" Width="*"/>
-                <DataGridTextColumn Header="الحالة" Binding="{Binding IsActive, Converter={StaticResource BooleanToStatusConverter}}" Width="*"/>
-                <DataGridTextColumn Header="تاريخ الإنشاء" Binding="{Binding CreatedAt, StringFormat={}{0:d}}" Width="*"/>
+                <DataGridTemplateColumn Header="الصورة" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Ellipse Width="40" Height="40" Margin="5">
+                                <Ellipse.Fill>
+                                    <ImageBrush ImageSource="{Binding ProfilePicture}" Stretch="UniformToFill"/>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="اسم المستخدم" Binding="{Binding Username}" Width="1.5*"/>
+                <DataGridTextColumn Header="الاسم الكامل" Binding="{Binding FullName}" Width="2*"/>
+                <DataGridTextColumn Header="البريد الإلكتروني" Binding="{Binding Email}" Width="2*"/>
+                <DataGridTextColumn Header="الدور" Binding="{Binding RoleName}" Width="*"/>
+                <DataGridTextColumn Header="القسم" Binding="{Binding DepartmentName}" Width="*"/>
+                <DataGridTemplateColumn Header="الحالة" Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Ellipse Width="10" Height="10" Fill="{Binding IsActive, Converter={StaticResource BoolToColorConverter}}" Margin="0,0,5,0"/>
+                                <TextBlock Text="{Binding IsActive, Converter={StaticResource BooleanToStatusConverter}}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="تاريخ الإنشاء" Binding="{Binding CreatedAt, StringFormat='yyyy/MM/dd'}" Width="*"/>
+                <DataGridTemplateColumn Header="إجراءات" Width="2*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="تعديل" Click="EditButton_Click" Padding="8,3" Margin="2" Background="#FFC107"/>
+                                <!-- === بداية الإضافة: زر عرض الصلاحيات === -->
+                                <Button Content="عرض الصلاحيات" Click="ViewPermissionsButton_Click" Padding="8,3" Margin="2" Background="#17A2B8"/>
+                                <!-- === نهاية الإضافة === -->
+                                <Button Content="تغيير الحالة" Click="ToggleStatus_Click" Padding="8,3" Margin="2" Background="#6C757D"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+            <Button x:Name="NextPageButton" Content="التالي &gt;" Click="NextPageButton_Click"/>
+            <TextBlock x:Name="PageInfoTextBlock" Text="الصفحة 1 من 1" VerticalAlignment="Center" Margin="10,0"/>
+            <Button x:Name="PreviousPageButton" Content="&lt; السابق" Click="PreviousPageButton_Click"/>
+        </StackPanel>
     </Grid>
 </UserControl>

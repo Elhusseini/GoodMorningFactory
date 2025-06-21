@@ -1,7 +1,7 @@
 ﻿// UI/Views/AddEditSalesQuotationWindow.xaml.cs
-// *** ملف جديد: الكود الخلفي لنافذة إنشاء وتعديل عرض السعر ***
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
+using GoodMorningFactory.Core.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.ObjectModel;
@@ -19,15 +19,56 @@ namespace GoodMorningFactory.UI.Views
         public string Description { get; set; }
 
         private decimal _unitPrice;
-        public decimal UnitPrice { get => _unitPrice; set { _unitPrice = value; OnPropertyChanged(nameof(UnitPrice)); OnPropertyChanged(nameof(Subtotal)); } }
+        public decimal UnitPrice
+        {
+            get => _unitPrice;
+            set
+            {
+                if (_unitPrice != value)
+                {
+                    _unitPrice = value;
+                    OnPropertyChanged(nameof(UnitPrice));
+                    OnPropertyChanged(nameof(Subtotal));
+                    OnPropertyChanged(nameof(SubtotalFormatted));
+                }
+            }
+        }
 
         private int _quantity;
-        public int Quantity { get => _quantity; set { _quantity = value; OnPropertyChanged(nameof(Quantity)); OnPropertyChanged(nameof(Subtotal)); } }
+        public int Quantity
+        {
+            get => _quantity;
+            set
+            {
+                if (_quantity != value)
+                {
+                    _quantity = value;
+                    OnPropertyChanged(nameof(Quantity));
+                    OnPropertyChanged(nameof(Subtotal));
+                    OnPropertyChanged(nameof(SubtotalFormatted));
+                }
+            }
+        }
 
         private decimal _discount;
-        public decimal Discount { get => _discount; set { _discount = value; OnPropertyChanged(nameof(Discount)); OnPropertyChanged(nameof(Subtotal)); } }
+        public decimal Discount
+        {
+            get => _discount;
+            set
+            {
+                if (_discount != value)
+                {
+                    _discount = value;
+                    OnPropertyChanged(nameof(Discount));
+                    OnPropertyChanged(nameof(Subtotal));
+                    OnPropertyChanged(nameof(SubtotalFormatted));
+                }
+            }
+        }
 
         public decimal Subtotal => (UnitPrice * Quantity) - Discount;
+        public string SubtotalFormatted => $"{Subtotal:N2} {AppSettings.DefaultCurrencySymbol}";
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -51,6 +92,7 @@ namespace GoodMorningFactory.UI.Views
             using (var db = new DatabaseContext())
             {
                 CustomerComboBox.ItemsSource = db.Customers.Where(c => c.IsActive).ToList();
+                PriceListComboBox.ItemsSource = db.PriceLists.ToList();
             }
 
             if (_quotationId.HasValue) // وضع التعديل
@@ -92,39 +134,70 @@ namespace GoodMorningFactory.UI.Views
             }
         }
 
-        private void SearchProductTextBox_KeyUp(object sender, KeyEventArgs e)
+        private void AddProduct()
         {
-            if (e.Key == Key.Enter)
+            if (string.IsNullOrWhiteSpace(SearchProductTextBox.Text)) return;
+
+            using (var db = new DatabaseContext())
             {
-                using (var db = new DatabaseContext())
+                var product = db.Products.FirstOrDefault(p => p.ProductCode.ToLower() == SearchProductTextBox.Text.ToLower() || p.Name.ToLower().Contains(SearchProductTextBox.Text.ToLower()));
+                if (product != null)
                 {
-                    var product = db.Products.FirstOrDefault(p => p.ProductCode.ToLower() == SearchProductTextBox.Text.ToLower() || p.Name.ToLower().Contains(SearchProductTextBox.Text.ToLower()));
-                    if (product != null)
+                    var existingItem = _items.FirstOrDefault(i => i.ProductId == product.Id);
+                    if (existingItem != null)
                     {
-                        var existingItem = _items.FirstOrDefault(i => i.ProductId == product.Id);
-                        if (existingItem != null)
-                        {
-                            existingItem.Quantity++;
-                        }
-                        else
-                        {
-                            _items.Add(new SalesQuotationItemViewModel
-                            {
-                                ProductId = product.Id,
-                                ProductName = product.Name,
-                                Description = product.Description,
-                                Quantity = 1,
-                                UnitPrice = product.SalePrice,
-                                Discount = 0
-                            });
-                        }
-                        SearchProductTextBox.Clear();
+                        existingItem.Quantity++;
                     }
+                    else
+                    {
+                        decimal price = product.SalePrice;
+                        if (PriceListComboBox.SelectedValue is int priceListId)
+                        {
+                            var productPrice = db.ProductPrices.FirstOrDefault(pp => pp.PriceListId == priceListId && pp.ProductId == product.Id);
+                            if (productPrice != null)
+                            {
+                                price = productPrice.Price;
+                            }
+                        }
+
+                        _items.Add(new SalesQuotationItemViewModel
+                        {
+                            ProductId = product.Id,
+                            ProductName = product.Name,
+                            Description = product.Description ?? product.Name,
+                            Quantity = 1,
+                            UnitPrice = price,
+                            Discount = 0
+                        });
+                    }
+                    SearchProductTextBox.Clear();
+                }
+                else
+                {
+                    MessageBox.Show("لم يتم العثور على المنتج.", "بحث", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
         }
 
-        private void UpdateTotal() => TotalAmountTextBlock.Text = $"{_items.Sum(i => i.Subtotal):C}";
+        private void SearchProductTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                AddProduct();
+                e.Handled = true;
+            }
+        }
+
+        private void AddProductButton_Click(object sender, RoutedEventArgs e)
+        {
+            AddProduct();
+        }
+
+        private void UpdateTotal()
+        {
+            string currencySymbol = AppSettings.DefaultCurrencySymbol;
+            TotalAmountTextBlock.Text = $"{_items.Sum(i => i.Subtotal):N2} {currencySymbol}";
+        }
         private void RemoveItem_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as FrameworkElement)?.DataContext is SalesQuotationItemViewModel item) _items.Remove(item);
@@ -164,7 +237,7 @@ namespace GoodMorningFactory.UI.Views
                     quotation.SalesQuotationItems.Add(new SalesQuotationItem
                     {
                         ProductId = item.ProductId,
-                        Description = item.Description,
+                        Description = item.Description ?? item.ProductName,
                         Quantity = item.Quantity,
                         UnitPrice = item.UnitPrice,
                         Discount = item.Discount

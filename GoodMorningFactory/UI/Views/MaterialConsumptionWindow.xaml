@@ -1,35 +1,60 @@
-﻿<!-- UI/Views/MaterialConsumptionWindow.xaml -->
-<!-- الكود الكامل لملف تصميم نافذة تسجيل استهلاك المواد -->
-<Window x:Class="GoodMorningFactory.UI.Views.MaterialConsumptionWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.MaterialConsumptionWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="clr-namespace:GoodMorningFactory.UI.Converters"
         mc:Ignorable="d"
-        Title="تسجيل استهلاك المواد" Height="500" Width="700"
-        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
-    <Grid Margin="10">
+        Title="صرف مواد للإنتاج" Height="600" Width="1000"
+        FlowDirection="RightToLeft" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Window.Resources>
+    <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <GroupBox Header="أمر العمل" Grid.Row="0">
-            <TextBlock x:Name="WorkOrderNumberTextBlock" FontWeight="Bold" Margin="5"/>
-        </GroupBox>
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="صرف مواد للإنتاج" Style="{DynamicResource TitleTextBlockStyle}"/>
+            <TextBlock x:Name="WorkOrderNumberTextBlock" FontSize="16"/>
+        </StackPanel>
 
-        <GroupBox Header="المواد المستهلكة" Grid.Row="1" Margin="0,10,0,0">
-            <DataGrid x:Name="MaterialsDataGrid" CanUserAddRows="False" AutoGenerateColumns="False">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="المادة الخام" Binding="{Binding MaterialName}" IsReadOnly="True" Width="2*"/>
-                    <DataGridTextColumn Header="الكمية المطلوبة" Binding="{Binding RequiredQuantity, StringFormat=N4}" IsReadOnly="True" Width="*"/>
-                    <DataGridTextColumn Header="المتوفر بالمخزن" Binding="{Binding AvailableQuantity}" IsReadOnly="True" Width="*"/>
-                    <DataGridTextColumn Header="الكمية المستهلكة الآن" Binding="{Binding ConsumedQuantity, StringFormat=N4}" Width="*"/>
-                </DataGrid.Columns>
-            </DataGrid>
-        </GroupBox>
+        <DataGrid x:Name="MaterialsDataGrid" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="اسم المادة" Binding="{Binding MaterialName}" IsReadOnly="True" Width="2*"/>
+                <DataGridTextColumn Header="الكمية المطلوبة" Binding="{Binding RequiredQuantity, StringFormat=N2}" IsReadOnly="True" Width="*"/>
+                <DataGridTextColumn Header="تم صرفه سابقاً" Binding="{Binding PreviouslyConsumedQuantity, StringFormat=N2}" IsReadOnly="True" Width="*"/>
+                <DataGridTextColumn Header="الكمية المتبقية" Binding="{Binding RemainingToConsume, StringFormat=N2}" IsReadOnly="True" Width="*" FontWeight="Bold"/>
+                <DataGridTemplateColumn Header="صرف من الموقع" Width="2*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding AvailableLocations}" 
+                                      DisplayMemberPath="DisplayName" 
+                                      SelectedValuePath="StorageLocationId" 
+                                      SelectedValue="{Binding SourceLocationId, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="الكمية المصروفة الآن" Binding="{Binding ConsumedQuantity, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
 
-        <Button Content="✅ تأكيد الاستهلاك" Grid.Row="2" HorizontalAlignment="Left" Padding="15,5" Margin="5" Click="ConfirmConsumptionButton_Click"/>
+                <DataGridTemplateColumn Header="بيانات التتبع" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="اختيار الأرقام" 
+                                    Click="SelectTrackingDataButton_Click" 
+                                    Visibility="{Binding IsTracked, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="تأكيد الصرف" Style="{DynamicResource PrimaryButtonStyle}" Click="ConfirmConsumptionButton_Click"/>
+            <Button Content="إلغاء" Style="{DynamicResource SecondaryButtonStyle}" Margin="10,0,0,0" IsCancel="True"/>
+        </StackPanel>
     </Grid>
 </Window>

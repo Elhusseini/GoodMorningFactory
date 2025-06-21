@@ -1,5 +1,5 @@
 ﻿// Data/Models/SalesQuotation.cs
-// *** تحديث: تمت إضافة حالة جديدة لعرض السعر ***
+// *** تحديث: تمت إضافة حقول لحساب الضريبة ***
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -7,9 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GoodMorningFactory.Data.Models
 {
-    // *** بداية التحديث ***
     public enum QuotationStatus { Draft, Sent, Accepted, Rejected, Expired, Closed }
-    // *** نهاية التحديث ***
 
     public class SalesQuotation
     {
@@ -35,8 +33,16 @@ namespace GoodMorningFactory.Data.Models
         public int CustomerId { get; set; }
         public virtual Customer Customer { get; set; }
 
+        // --- بداية التحديث: إضافة حقول الضريبة ---
         [Column(TypeName = "decimal(18, 2)")]
-        public decimal TotalAmount { get; set; }
+        public decimal Subtotal { get; set; } // الإجمالي قبل الضريبة
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal TaxAmount { get; set; } // مبلغ الضريبة
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal TotalAmount { get; set; } // الإجمالي النهائي بعد الضريبة
+        // --- نهاية التحديث ---
 
         [Required]
         public QuotationStatus Status { get; set; }

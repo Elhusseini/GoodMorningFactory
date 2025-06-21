@@ -17,6 +17,8 @@ namespace GoodMorningFactory.UI.Views
         public decimal Debit { get; set; }
         public decimal Credit { get; set; }
         public string Description { get; set; }
+        public int? CostCenterId { get; set; } // ** إضافة جديدة **
+
         public event PropertyChangedEventHandler PropertyChanged;
     }
 
@@ -40,6 +42,9 @@ namespace GoodMorningFactory.UI.Views
                 var accounts = db.Accounts.OrderBy(a => a.AccountNumber).ToList();
                 var accountColumn = (DataGridComboBoxColumn)VoucherItemsDataGrid.Columns[0];
                 accountColumn.ItemsSource = accounts;
+                var costCenters = db.CostCenters.Where(c => c.IsActive).ToList();
+                var costCenterColumn = (DataGridComboBoxColumn)VoucherItemsDataGrid.Columns[4];
+                costCenterColumn.ItemsSource = costCenters;
             }
         }
 
@@ -72,7 +77,18 @@ namespace GoodMorningFactory.UI.Views
                 MessageBox.Show("لا يمكن حفظ قيد فارغ.", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-
+            // --- ** بداية الإضافة: التحقق من الفترة المحاسبية ** ---
+            DateTime voucherDate = VoucherDatePicker.SelectedDate ?? DateTime.Today;
+            using (var dbCheck = new DatabaseContext())
+            {
+                var period = dbCheck.AccountingPeriods.FirstOrDefault(p => p.Year == voucherDate.Year && p.Month == voucherDate.Month);
+                if (period != null && period.Status == PeriodStatus.Closed)
+                {
+                    MessageBox.Show("لا يمكن تسجيل القيد في فترة محاسبية مغلقة.", "عملية مرفوضة", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+            }
+            // --- ** نهاية الإضافة ** ---
             try
             {
                 using (var db = new DatabaseContext())
@@ -93,7 +109,9 @@ namespace GoodMorningFactory.UI.Views
                             AccountId = item.AccountId,
                             Debit = item.Debit,
                             Credit = item.Credit,
-                            Description = item.Description
+                            Description = item.Description,
+                            CostCenterId = item.CostCenterId // ** إضافة جديدة **
+
                         });
                     }
 

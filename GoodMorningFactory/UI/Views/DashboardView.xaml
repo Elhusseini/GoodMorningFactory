@@ -5,7 +5,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf" 
+             xmlns:s="clr-namespace:GoodMorningFactory.Core.Services"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1200"
              Background="Transparent" FlowDirection="RightToLeft">
@@ -20,13 +21,23 @@
             <Border Style="{StaticResource DashboardCardStyle}" Background="#FF5733">
                 <StackPanel>
                     <TextBlock Text="مبيعات اليوم" Style="{StaticResource DashboardCardTitleStyle}"/>
-                    <TextBlock Text="{Binding TotalSalesToday, StringFormat={}{0:C}}" Style="{StaticResource DashboardCardValueStyle}"/>
+                    <!-- *** بداية التعديل *** -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding TotalSalesToday, StringFormat=N2}" Style="{StaticResource DashboardCardValueStyle}"/>
+                        <TextBlock Text="{x:Static s:AppSettings.DefaultCurrencySymbol}" Style="{StaticResource DashboardCardValueStyle}" Margin="5,0,0,0"/>
+                    </StackPanel>
+                    <!-- *** نهاية التعديل *** -->
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource DashboardCardStyle}" Background="#33C4FF">
                 <StackPanel>
                     <TextBlock Text="مبيعات هذا الشهر" Style="{StaticResource DashboardCardTitleStyle}"/>
-                    <TextBlock Text="{Binding TotalSalesThisMonth, StringFormat={}{0:C}}" Style="{StaticResource DashboardCardValueStyle}"/>
+                    <!-- *** بداية التعديل *** -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding TotalSalesThisMonth, StringFormat=N2}" Style="{StaticResource DashboardCardValueStyle}"/>
+                        <TextBlock Text="{x:Static s:AppSettings.DefaultCurrencySymbol}" Style="{StaticResource DashboardCardValueStyle}" Margin="5,0,0,0"/>
+                    </StackPanel>
+                    <!-- *** نهاية التعديل *** -->
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource DashboardCardStyle}" Background="#33FF57">

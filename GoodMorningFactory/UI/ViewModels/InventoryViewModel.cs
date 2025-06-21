@@ -1,29 +1,51 @@
 ﻿// UI/ViewModels/InventoryViewModel.cs
-// *** تحديث: تمت إضافة حقول جديدة لعرض حالة المخزون بشكل تفصيلي ***
+// *** تحديث شامل: تم تعديل النموذج ليعرض المخزون على مستوى الموقع الفرعي ***
+using GoodMorningFactory.Core.Services;
+using GoodMorningFactory.Data.Models;
+using System.ComponentModel;
+
 namespace GoodMorningFactory.UI.ViewModels
 {
-    public enum StockStatus { Available, LowStock, OutOfStock }
+    public enum StockStatus
+    {
+        [Description("متوفر")]
+        Available,
+        [Description("كمية منخفضة")]
+        LowStock,
+        [Description("نفد المخزون")]
+        OutOfStock
+    }
 
     public class InventoryViewModel
     {
         public int ProductId { get; set; }
+        public int StorageLocationId { get; set; } // ** إضافة جديدة **
         public string ProductCode { get; set; }
         public string ProductName { get; set; }
         public string CategoryName { get; set; }
-        public string WarehouseName { get; set; } // <-- إضافة جديدة
-        public int Quantity { get; set; }
-        public int QuantityOnHand { get; set; } // الكمية الحالية في المخزن
-        public int QuantityReserved { get; set; } // الكمية المحجوزة لأوامر البيع
-        public int QuantityAvailable => QuantityOnHand - QuantityReserved; // الكمية المتاحة فعلياً
-        public int ReorderLevel { get; set; } // حد إعادة الطلب
+        public string WarehouseName { get; set; }
+        public string StorageLocationName { get; set; } // ** إضافة جديدة **
 
-        // خاصية محسوبة لتحديد حالة المخزون
+        public int QuantityOnHand { get; set; }
+        public int QuantityReserved { get; set; }
+        public int QuantityAvailable => QuantityOnHand - QuantityReserved;
+
+        public int ReorderLevel { get; set; }
+        public int MinStockLevel { get; set; }
+        public int MaxStockLevel { get; set; }
+
+        public decimal AverageCost { get; set; }
+        public decimal TotalStockValue => QuantityOnHand * AverageCost;
+
+        public string AverageCostFormatted => $"{AverageCost:N2} {AppSettings.DefaultCurrencySymbol}";
+        public string TotalStockValueFormatted => $"{TotalStockValue:N2} {AppSettings.DefaultCurrencySymbol}";
+
         public StockStatus Status
         {
             get
             {
                 if (QuantityAvailable <= 0) return StockStatus.OutOfStock;
-                if (QuantityAvailable <= ReorderLevel) return StockStatus.LowStock;
+                if (QuantityAvailable <= ReorderLevel && ReorderLevel > 0) return StockStatus.LowStock;
                 return StockStatus.Available;
             }
         }

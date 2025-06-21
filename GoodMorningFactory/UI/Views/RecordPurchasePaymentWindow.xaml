@@ -5,6 +5,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:s="clr-namespace:GoodMorningFactory.Core.Services"
         mc:Ignorable="d"
         Title="تسجيل دفعة لمورد" Height="350" Width="450"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize" FlowDirection="RightToLeft">
@@ -43,9 +44,13 @@
                 <TextBlock Text="المدفوع سابقاً" Foreground="Gray"/>
                 <TextBlock x:Name="PreviouslyPaidTextBlock" FontSize="16" FontWeight="SemiBold" Foreground="Green"/>
             </StackPanel>
+
             <StackPanel Grid.Column="2" HorizontalAlignment="Center">
                 <TextBlock Text="المستحق حالياً" Foreground="Gray"/>
-                <TextBlock x:Name="BalanceDueTextBlock" FontSize="16" FontWeight="SemiBold" Foreground="Red"/>
+                <TextBlock x:Name="BalanceDueTextBlock" FontSize="16" FontWeight="SemiBold" Foreground="Red">
+        <Run Text="{Binding BalanceDue, StringFormat=N2}"/>
+        <Run Text="{x:Static s:AppSettings.DefaultCurrencySymbol}"/>
+                </TextBlock>
             </StackPanel>
         </Grid>
 
@@ -53,7 +58,22 @@
 
         <StackPanel Grid.Row="4" VerticalAlignment="Center">
             <Label Content="المبلغ المدفوع الآن:"/>
-            <TextBox x:Name="AmountToPayTextBox" FontSize="18" TextAlignment="Center" Margin="5"/>
+            <TextBox x:Name="AmountToPayTextBox" FontSize="18" TextAlignment="Center" Margin="5" 
+         Text="{Binding AmountToPay, StringFormat=N2, UpdateSourceTrigger=PropertyChanged}">
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
+                        <Setter Property="Text">
+                            <Setter.Value>
+                                <Binding Path="AmountToPay" StringFormat="{}{0:N2} {1}">
+                                    <Binding.ConverterParameter>
+                                        <x:Static Member="s:AppSettings.DefaultCurrencySymbol"/>
+                                    </Binding.ConverterParameter>
+                                </Binding>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
         </StackPanel>
 
         <Button Grid.Row="5" Content="✅ تأكيد الدفعة" Padding="8" Click="ConfirmPaymentButton_Click"/>

@@ -1,65 +1,58 @@
-﻿<!-- UI/Views/AddEditBillOfMaterialsWindow.xaml -->
-<!-- نافذة إضافة وتعديل قائمة المكونات -->
-<Window x:Class="GoodMorningFactory.UI.Views.AddEditBillOfMaterialsWindow"
+﻿<Window x:Class="GoodMorningFactory.UI.Views.AddEditBillOfMaterialsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GoodMorningFactory.UI.Views"
         mc:Ignorable="d"
         Title="إنشاء / تعديل قائمة مكونات" Height="600" Width="800"
-        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
-    <Grid Margin="10">
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="RightToLeft">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <GroupBox Header="معلومات القائمة" Grid.Row="0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Margin="10">
+            <TextBlock Text="المنتج النهائي:" FontWeight="SemiBold"/>
+            <ComboBox x:Name="FinishedGoodComboBox" DisplayMemberPath="Name" SelectedValuePath="Id" Margin="0,0,0,10"/>
+            <TextBlock Text="الوصف:" FontWeight="SemiBold"/>
+            <TextBox x:Name="DescriptionTextBox"/>
+        </StackPanel>
 
-                <Label Grid.Row="0" Grid.Column="0" Content="المنتج النهائي:"/>
-                <ComboBox x:Name="FinishedGoodComboBox" Grid.Row="0" Grid.Column="1" Margin="5" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+        <Grid Grid.Row="1" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <!-- === بداية التحديث: إضافة زر الإضافة === -->
+            <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                <TextBlock Text="بحث عن مادة خام:" VerticalAlignment="Center"/>
+                <Button x:Name="AddMaterialButton" Content="إضافة" DockPanel.Dock="Left" Margin="10,0,0,0" Click="AddMaterialButton_Click"/>
+                <TextBox x:Name="SearchMaterialTextBox" Margin="10,0" KeyUp="SearchMaterialTextBox_KeyUp"/>
+            </DockPanel>
+            <!-- === نهاية التحديث === -->
+            <DataGrid Grid.Row="1" x:Name="BomItemsDataGrid" AutoGenerateColumns="False" CanUserAddRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="اسم المادة" Binding="{Binding RawMaterialName}" Width="2*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                    <DataGridTextColumn Header="نسبة الهالك (%)" Binding="{Binding ScrapPercentage, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                    <DataGridTemplateColumn Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="حذف" Click="RemoveItem_Click" Background="Transparent" Foreground="Red" BorderThickness="0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
 
-                <Label Grid.Row="1" Grid.Column="0" Content="الوصف:"/>
-                <TextBox x:Name="DescriptionTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
-            </Grid>
-        </GroupBox>
-
-        <GroupBox Header="المواد الخام المطلوبة" Grid.Row="1" Margin="0,10,0,0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal" Margin="5">
-                    <TextBlock Text="بحث عن مادة خام:" VerticalAlignment="Center" Margin="5"/>
-                    <TextBox x:Name="SearchMaterialTextBox" Width="300" KeyUp="SearchMaterialTextBox_KeyUp"/>
-                </StackPanel>
-                <DataGrid x:Name="BomItemsDataGrid" Grid.Row="1" CanUserAddRows="False" AutoGenerateColumns="False">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="المادة الخام" Binding="{Binding RawMaterialName}" IsReadOnly="True" Width="2*"/>
-                        <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity, StringFormat=N4}" Width="*"/>
-                        <DataGridTemplateColumn>
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Content="❌" Click="RemoveItem_Click" Background="Transparent" BorderThickness="0" Foreground="Red"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Grid>
-        </GroupBox>
-
-        <Button Content="💾 حفظ القائمة" Grid.Row="2" HorizontalAlignment="Left" Padding="15,5" Margin="5" Click="SaveButton_Click"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+            <Button x:Name="SaveButton" Content="حفظ" Width="100" Margin="5" IsDefault="True" Click="SaveButton_Click"/>
+            <Button Content="إلغاء" Width="100" Margin="5" IsCancel="True"/>
+        </StackPanel>
     </Grid>
 </Window>

@@ -1,9 +1,10 @@
 ﻿// UI/Views/LoginWindow.xaml.cs
-// *** تحديث: تم إصلاح منطق التحقق من الدخول ***
+// *** تحديث: تم إضافة تعيين المستخدم الحالي واستدعاء تحميل الصلاحيات فوراً ***
 using GoodMorningFactory.Core.Helpers;
 using GoodMorningFactory.Core.Services;
 using GoodMorningFactory.Data;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Windows;
 
@@ -18,39 +19,33 @@ namespace GoodMorningFactory.UI.Views
 
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(UsernameTextBox.Text) || string.IsNullOrWhiteSpace(PasswordBox.Password))
+            try
             {
-                MessageBox.Show("يرجى إدخال اسم المستخدم وكلمة المرور.", "بيانات ناقصة", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                using (var db = new DatabaseContext())
+                {
+                    var user = db.Users.Include(u => u.Role).FirstOrDefault(u => u.Username.ToLower() == UsernameTextBox.Text.ToLower());
+
+                    if (user != null && user.IsActive && PasswordHelper.VerifyPassword(PasswordBox.Password, user.PasswordHash))
+                    {
+                        // --- بداية الإصلاح الجذري ---
+                        // 1. تعيين المستخدم الحالي في الخدمة المركزية
+                        CurrentUserService.LoggedInUser = user;
+
+                        // 2. تحميل صلاحيات هذا المستخدم فوراً
+                        PermissionsService.LoadUserPermissions(user.RoleId);
+                        // --- نهاية الإصلاح ---
+
+                        this.DialogResult = true; // سيؤدي هذا إلى إغلاق نافذة تسجيل الدخول
+                    }
+                    else
+                    {
+                        MessageBox.Show("اسم المستخدم أو كلمة المرور غير صحيحة, أو أن الحساب غير نشط.", "خطأ في تسجيل الدخول", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
             }
-
-            using (var db = new DatabaseContext())
+            catch (Exception ex)
             {
-                var userFromDb = db.Users.FirstOrDefault(u => u.Username.ToLower() == UsernameTextBox.Text.ToLower());
-
-                if (userFromDb == null)
-                {
-                    MessageBox.Show("اسم المستخدم أو كلمة المرور غير صحيحة.", "فشل الدخول", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                if (!userFromDb.IsActive)
-                {
-                    MessageBox.Show("هذا الحساب غير نشط. يرجى مراجعة المسؤول.", "فشل الدخول", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                if (PasswordHelper.VerifyPassword(PasswordBox.Password, userFromDb.PasswordHash))
-                {
-                    // *** بداية التصحيح: إعادة تحميل المستخدم مع دوره بشكل كامل ***
-                    CurrentUserService.LoggedInUser = db.Users.Include(u => u.Role).SingleOrDefault(u => u.Id == userFromDb.Id);
-                    // *** نهاية التصحيح ***
-                    this.DialogResult = true;
-                }
-                else
-                {
-                    MessageBox.Show("اسم المستخدم أو كلمة المرور غير صحيحة.", "فشل الدخول", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                MessageBox.Show($"حدث خطأ أثناء محاولة تسجيل الدخول: {ex.Message}", "خطأ فادح", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

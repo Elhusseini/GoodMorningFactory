@@ -12,5 +12,6 @@ namespace GoodMorningFactory.UI.ViewModels
         public decimal SalePrice { get; set; }
         public int CurrentStock { get; set; }
         public bool IsActive { get; set; }
+        public string CurrencySymbol { get; set; }
     }
 }

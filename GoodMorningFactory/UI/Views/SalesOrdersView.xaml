@@ -1,80 +1,160 @@
 ﻿<!-- UI/Views/SalesOrdersView.xaml -->
-<!-- *** تحديث: تمت إضافة زر الإلغاء مع Style Triggers *** -->
+<!-- *** تحديث: تم تطبيق تصميم الأزرار الملونة وتحسين منطق التعطيل *** -->
 <UserControl x:Class="GoodMorningFactory.UI.Views.SalesOrdersView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GoodMorningFactory.UI.Views"
+             xmlns:models="clr-namespace:GoodMorningFactory.Data.Models"
+             xmlns:converters="clr-namespace:GoodMorningFactory.UI.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="1000"
-             Background="#F5F5F5" FlowDirection="RightToLeft">
-    <Grid Margin="10">
+             d:DesignHeight="600" d:DesignWidth="1200"
+             FlowDirection="RightToLeft">
+    <UserControl.Resources>
+        <converters:EnumToDescriptionConverter x:Key="EnumToDescriptionConverter"/>
+
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.5"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <ToolBarTray Grid.Row="0">
-            <ToolBar>
-                <Button Content="➕ إنشاء أمر بيع جديد" Margin="5" Padding="5" Click="AddOrderButton_Click"/>
-            </ToolBar>
-        </ToolBarTray>
+        <Border Grid.Row="0" Padding="10" Background="#F5F5F5" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="إنشاء أمر بيع" Click="AddOrderButton_Click" Margin="0,0,20,0"/>
+                <TextBlock Text="بحث:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <TextBox x:Name="SearchTextBox" Width="200" KeyUp="Filter_KeyUp" VerticalContentAlignment="Center"/>
+                <TextBlock Text="الحالة:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <ComboBox x:Name="StatusFilterComboBox" Width="150" SelectionChanged="Filter_Changed"/>
+            </StackPanel>
+        </Border>
 
-        <DataGrid x:Name="OrdersDataGrid" Grid.Row="1" Margin="0,10,0,0"
-                  IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
+        <DataGrid Grid.Row="1" x:Name="OrdersDataGrid" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="رقم الأمر" Binding="{Binding SalesOrderNumber}" Width="*"/>
-                <DataGridTextColumn Header="العميل" Binding="{Binding Customer.CustomerName}" Width="2*"/>
-                <DataGridTextColumn Header="تاريخ الأمر" Binding="{Binding OrderDate, StringFormat='d'}" Width="*"/>
-                <DataGridTextColumn Header="تاريخ الشحن المتوقع" Binding="{Binding ExpectedShipDate, StringFormat='d'}" Width="*"/>
-                <DataGridTextColumn Header="الإجمالي" Binding="{Binding TotalAmount, StringFormat={}{0:C}}" Width="*"/>
-                <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="*"/>
+                <DataGridTextColumn Header="رقم الأمر" Binding="{Binding SalesOrderNumber}"/>
+                <DataGridTextColumn Header="تاريخ الأمر" Binding="{Binding OrderDate, StringFormat='yyyy/MM/dd'}"/>
+                <DataGridTextColumn Header="اسم العميل" Binding="{Binding CustomerName}" Width="*"/>
+                <DataGridTextColumn Header="المبلغ الإجمالي" Binding="{Binding TotalAmountFormatted}"/>
+                <DataGridTextColumn Header="تاريخ الشحن المتوقع" Binding="{Binding ExpectedShipDate, StringFormat='yyyy/MM/dd'}"/>
+
+                <DataGridTextColumn Header="حالة الأمر" Binding="{Binding OrderStatus, Converter={StaticResource EnumToDescriptionConverter}}"/>
+                <DataGridTextColumn Header="حالة الشحن" Binding="{Binding ShippingStatus, Converter={StaticResource EnumToDescriptionConverter}}"/>
+                <DataGridTextColumn Header="حالة الفوترة" Binding="{Binding InvoicingStatus, Converter={StaticResource EnumToDescriptionConverter}}"/>
+
                 <DataGridTemplateColumn Header="إجراءات" Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
-                                <!-- *** بداية التحديث *** -->
-                                <Button Content="عرض/تعديل" Margin="2" Click="EditButton_Click"/>
-                                <Button Content="إنشاء شحنة" Margin="2" Click="CreateShipmentButton_Click" Background="LightBlue">
+                                <Button Content="تعديل" Background="Orange" Click="EditButton_Click">
                                     <Button.Style>
-                                        <Style TargetType="Button">
+                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+                                            <Setter Property="IsEnabled" Value="True"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Status}" Value="Cancelled">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.InProcess}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="Shipped">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.PartiallyShipped}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="Invoiced">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.Shipped}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.Invoiced}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.Cancelled}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
                                 </Button>
-                                <Button Content="إلغاء الأمر" Margin="2" Click="CancelOrderButton_Click" Background="OrangeRed" Foreground="White">
+                                <Button Content="إلغاء" Background="IndianRed" Click="CancelOrderButton_Click">
                                     <Button.Style>
-                                        <Style TargetType="Button">
+                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+                                            <Setter Property="IsEnabled" Value="True"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Status}" Value="Cancelled">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.Shipped}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="Shipped">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.Invoiced}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Status}" Value="Invoiced">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.Cancelled}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Button.Style>
                                 </Button>
-                                <!-- *** نهاية التحديث *** -->
+                                <Button Content="إنشاء أمر عمل" Background="Purple" Click="CreateWorkOrderButton_Click">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+                                            <Setter Property="IsEnabled" Value="True"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.Cancelled}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="إنشاء شحنة" Background="SeaGreen" Click="CreateShipmentButton_Click">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+                                            <Setter Property="IsEnabled" Value="True"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShippingStatus}" Value="{x:Static models:ShippingStatus.FullyShipped}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.Cancelled}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="إنشاء فاتورة" Background="DodgerBlue" Click="CreateInvoiceButton_Click">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}">
+                                            <Setter Property="IsEnabled" Value="True"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding InvoicingStatus}" Value="{x:Static models:InvoicingStatus.FullyInvoiced}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="{x:Static models:OrderStatus.Cancelled}">
+                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+            <Button x:Name="PreviousPageButton" Content="السابق" Click="PreviousPageButton_Click"/>
+            <TextBlock x:Name="PageInfoTextBlock" Margin="10,0" VerticalAlignment="Center"/>
+            <Button x:Name="NextPageButton" Content="التالي" Click="NextPageButton_Click"/>
+        </StackPanel>
     </Grid>
 </UserControl>

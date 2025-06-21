@@ -25,10 +25,15 @@ namespace GoodMorningFactory.Data.Models
         public decimal Credit { get; set; }
 
         public string? Description { get; set; }
+
         // --- بداية التحديث ---
         public bool IsReconciled { get; set; } = false;
         public int? BankReconciliationId { get; set; }
         public virtual BankReconciliation BankReconciliation { get; set; }
+
+        // ** إضافة جديدة لربط الحركة بمركز تكلفة **
+        public int? CostCenterId { get; set; }
+        public virtual CostCenter CostCenter { get; set; }
         // --- نهاية التحديث ---
     }
 }

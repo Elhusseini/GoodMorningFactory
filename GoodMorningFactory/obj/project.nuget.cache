@@ -1,12 +1,14 @@
 {
   "version": 2,
-  "dgSpecHash": "iUluVYCaj+o=",
+  "dgSpecHash": "ff78gzpBUwQ=",
   "success": true,
   "projectFilePath": "E:\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Elhusseini\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\livecharts\\0.9.7\\livecharts.0.9.7.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\livecharts.wpf\\0.9.7\\livecharts.wpf.0.9.7.nupkg.sha512",
+    "C:\\Users\\Elhusseini\\.nuget\\packages\\materialdesigncolors\\1.1.0\\materialdesigncolors.1.1.0.nupkg.sha512",
+    "C:\\Users\\Elhusseini\\.nuget\\packages\\materialdesignthemes.wpf\\1.0.1\\materialdesignthemes.wpf.1.0.1.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\7.0.0\\microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\microsoft.build.framework\\17.8.3\\microsoft.build.framework.17.8.3.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\microsoft.build.locator\\1.7.8\\microsoft.build.locator.1.7.8.nupkg.sha512",
@@ -16,6 +18,7 @@
     "C:\\Users\\Elhusseini\\.nuget\\packages\\microsoft.codeanalysis.csharp.workspaces\\4.8.0\\microsoft.codeanalysis.csharp.workspaces.4.8.0.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\microsoft.codeanalysis.workspaces.common\\4.8.0\\microsoft.codeanalysis.workspaces.common.4.8.0.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\microsoft.codeanalysis.workspaces.msbuild\\4.8.0\\microsoft.codeanalysis.workspaces.msbuild.4.8.0.nupkg.sha512",
+    "C:\\Users\\Elhusseini\\.nuget\\packages\\microsoft.csharp\\4.6.0\\microsoft.csharp.4.6.0.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\microsoft.data.sqlite.core\\9.0.6\\microsoft.data.sqlite.core.9.0.6.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\microsoft.entityframeworkcore\\9.0.6\\microsoft.entityframeworkcore.9.0.6.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\9.0.6\\microsoft.entityframeworkcore.abstractions.9.0.6.nupkg.sha512",
@@ -49,6 +52,7 @@
     "C:\\Users\\Elhusseini\\.nuget\\packages\\system.composition.hosting\\7.0.0\\system.composition.hosting.7.0.0.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\system.composition.runtime\\7.0.0\\system.composition.runtime.7.0.0.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\system.composition.typedparts\\7.0.0\\system.composition.typedparts.7.0.0.nupkg.sha512",
+    "C:\\Users\\Elhusseini\\.nuget\\packages\\system.data.datasetextensions\\4.6.0-preview3.19128.7\\system.data.datasetextensions.4.6.0-preview3.19128.7.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\system.diagnostics.diagnosticsource\\9.0.6\\system.diagnostics.diagnosticsource.9.0.6.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\system.io.pipelines\\9.0.6\\system.io.pipelines.9.0.6.nupkg.sha512",
     "C:\\Users\\Elhusseini\\.nuget\\packages\\system.memory\\4.5.3\\system.memory.4.5.3.nupkg.sha512",
@@ -59,6 +63,18 @@
     "C:\\Users\\Elhusseini\\.nuget\\packages\\system.threading.channels\\7.0.0\\system.threading.channels.7.0.0.nupkg.sha512"
   ],
   "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "message": "MaterialDesignThemes.Wpf 1.0.1 depends on MaterialDesignColors (>= 1.0.1) but MaterialDesignColors 1.0.1 was not found. MaterialDesignColors 1.1.0 was resolved instead.",
+      "projectPath": "E:\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory.csproj",
+      "warningLevel": 1,
+      "filePath": "E:\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory.csproj",
+      "libraryId": "MaterialDesignColors",
+      "targetGraphs": [
+        "net8.0-windows7.0"
+      ]
+    },
     {
       "code": "NU1701",
       "level": "Warning",
@@ -79,6 +95,18 @@
       "warningLevel": 1,
       "filePath": "E:\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory.csproj",
       "libraryId": "LiveCharts.Wpf",
+      "targetGraphs": [
+        "net8.0-windows7.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "message": "Package 'MaterialDesignColors 1.1.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0-windows7.0'. This package may not be fully compatible with your project.",
+      "projectPath": "E:\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory.csproj",
+      "warningLevel": 1,
+      "filePath": "E:\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory\\GoodMorningFactory.csproj",
+      "libraryId": "MaterialDesignColors",
       "targetGraphs": [
         "net8.0-windows7.0"
       ]

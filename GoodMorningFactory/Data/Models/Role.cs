@@ -1,5 +1,5 @@
 ﻿// Data/Models/Role.cs
-// *** تحديث: تمت إضافة علاقة مع جدول الصلاحيات ***
+// *** تحديث: تمت إزالة علاقة مع جدول المستخدمين إذا لم يكن هناك حاجة مباشرة لها ***
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,8 +9,7 @@ namespace GoodMorningFactory.Data.Models
     {
         public Role()
         {
-            Users = new HashSet<User>();
-            RolePermissions = new HashSet<RolePermission>(); // <-- إضافة جديدة
+            RolePermissions = new HashSet<RolePermission>();
         }
 
         [Key]
@@ -22,7 +21,6 @@ namespace GoodMorningFactory.Data.Models
 
         public string? Description { get; set; }
 
-        public virtual ICollection<User> Users { get; set; }
-        public virtual ICollection<RolePermission> RolePermissions { get; set; } // <-- إضافة جديدة
+        public virtual ICollection<RolePermission> RolePermissions { get; set; }
     }
 }

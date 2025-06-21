@@ -1,20 +1,21 @@
 ﻿// UI/Views/PurchaseOrdersView.xaml.cs
-// *** الكود الكامل لواجهة أوامر الشراء مع إضافة منطق زر إنشاء الفاتورة ***
+// *** تحديث: تم إصلاح خطأ "InvalidOperationException" عند إنشاء فاتورة ***
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
+using GoodMorningFactory.UI.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Packaging;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
-using System.Windows.Xps;
+using System.Windows.Media.Imaging;
 using System.Windows.Xps.Packaging;
+using GoodMorningFactory.Core.Services;
 
 namespace GoodMorningFactory.UI.Views
 {
@@ -56,7 +57,19 @@ namespace GoodMorningFactory.UI.Views
                     }
 
                     _totalItems = query.Count();
-                    PurchaseOrdersDataGrid.ItemsSource = query.OrderByDescending(po => po.OrderDate).Skip((_currentPage - 1) * _pageSize).Take(_pageSize).ToList();
+
+                    var ordersForPage = query.OrderByDescending(po => po.OrderDate)
+                                             .Skip((_currentPage - 1) * _pageSize)
+                                             .Take(_pageSize)
+                                             .ToList();
+
+                    var viewModels = new List<PurchaseOrderViewModel>();
+                    foreach (var order in ordersForPage)
+                    {
+                        viewModels.Add(new PurchaseOrderViewModel { Order = order });
+                    }
+                    PurchaseOrdersDataGrid.ItemsSource = viewModels;
+
                     UpdatePageInfo();
                 }
             }
@@ -86,21 +99,20 @@ namespace GoodMorningFactory.UI.Views
             if (addWindow.ShowDialog() == true) { LoadPurchaseOrders(); }
         }
 
-        // --- بداية الإصلاح: تعديل منطق زر التعديل ---
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.DataContext is PurchaseOrder order)
+            if ((sender as Button)?.DataContext is PurchaseOrderViewModel vm)
             {
-                var editWindow = new AddEditPurchaseOrderWindow(order.Id);
+                var editWindow = new AddEditPurchaseOrderWindow(vm.Order.Id);
                 if (editWindow.ShowDialog() == true) { LoadPurchaseOrders(); }
             }
         }
-        // --- نهاية الإصلاح ---
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.DataContext is PurchaseOrder orderToCancel)
+            if ((sender as Button)?.DataContext is PurchaseOrderViewModel vm)
             {
+                var orderToCancel = vm.Order;
                 var result = MessageBox.Show($"هل أنت متأكد من إلغاء أمر الشراء رقم '{orderToCancel.PurchaseOrderNumber}'؟", "تأكيد الإلغاء", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (result == MessageBoxResult.Yes)
                 {
@@ -117,11 +129,10 @@ namespace GoodMorningFactory.UI.Views
 
         private void PrintButton_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.DataContext is PurchaseOrder orderToPrint)
+            if ((sender as Button)?.DataContext is PurchaseOrderViewModel vm)
             {
-                XpsDocument xpsDoc = null;
-                Uri packUri = null;
-
+                var orderToPrint = vm.Order;
+                string tempXpsFile = null;
                 try
                 {
                     using (var db = new DatabaseContext())
@@ -132,61 +143,103 @@ namespace GoodMorningFactory.UI.Views
                                   .ThenInclude(i => i.Product)
                                   .FirstOrDefault(p => p.Id == orderToPrint.Id);
 
-                        if (po == null) return;
+                        if (po == null)
+                        {
+                            MessageBox.Show("لم يتم العثور على أمر الشراء.", "خطأ");
+                            return;
+                        }
 
+                        var companyInfo = db.CompanyInfos.FirstOrDefault();
                         var resourceUri = new Uri("/UI/Views/PurchaseOrderPrintTemplate.xaml", UriKind.Relative);
                         var resource = Application.LoadComponent(resourceUri) as ResourceDictionary;
                         var flowDocument = XamlReader.Parse(XamlWriter.Save(resource["PurchaseOrder"])) as FlowDocument;
 
-                        (flowDocument.FindName("PONumberRun") as Run).Text = po.PurchaseOrderNumber;
-                        (flowDocument.FindName("OrderDateRun") as Run).Text = po.OrderDate.ToString("d");
+                        if (companyInfo != null)
+                        {
+                            (flowDocument.FindName("CompanyNameTextBlock") as Run).Text = companyInfo.CompanyName ?? "اسم الشركة";
+                            (flowDocument.FindName("CompanyAddressTextBlock") as Run).Text = companyInfo.Address;
+                            (flowDocument.FindName("CompanyPhoneTextBlock") as Run).Text = companyInfo.PhoneNumber;
+                            if (companyInfo.Logo != null)
+                            {
+                                var logoImage = new BitmapImage();
+                                using (var stream = new MemoryStream(companyInfo.Logo))
+                                {
+                                    logoImage.BeginInit();
+                                    logoImage.StreamSource = stream;
+                                    logoImage.CacheOption = BitmapCacheOption.OnLoad;
+                                    logoImage.EndInit();
+                                    logoImage.Freeze();
+                                }
+                                (flowDocument.FindName("CompanyLogoImage") as Image).Source = logoImage;
+                            }
+                        }
+
                         (flowDocument.FindName("SupplierNameRun") as Run).Text = po.Supplier.Name;
-                        (flowDocument.FindName("DeliveryDateRun") as Run).Text = po.ExpectedDeliveryDate?.ToString("d");
-                        (flowDocument.FindName("TotalAmountRun") as Run).Text = po.TotalAmount.ToString("C");
+                        (flowDocument.FindName("SupplierAddressRun") as Run).Text = po.Supplier.Address ?? "";
+                        (flowDocument.FindName("SupplierTaxNumberRun") as Run).Text = po.Supplier.TaxNumber ?? "";
+                        (flowDocument.FindName("PONumberRun") as Run).Text = po.PurchaseOrderNumber;
+                        (flowDocument.FindName("OrderDateRun") as Run).Text = po.OrderDate.ToString("yyyy/MM/dd");
+                        (flowDocument.FindName("DeliveryDateRun") as Run).Text = po.ExpectedDeliveryDate?.ToString("yyyy/MM/dd") ?? "غير محدد";
 
                         var itemsTableGroup = (TableRowGroup)flowDocument.FindName("ItemsTableRowGroup");
+                        int rowIndex = 1;
                         foreach (var item in po.PurchaseOrderItems)
                         {
                             var row = new TableRow();
+                            row.Cells.Add(new TableCell(new Paragraph(new Run(rowIndex.ToString())) { TextAlignment = TextAlignment.Center }));
                             row.Cells.Add(new TableCell(new Paragraph(new Run(item.Product.Name))));
-                            row.Cells.Add(new TableCell(new Paragraph(new Run(item.Quantity.ToString()))));
-                            row.Cells.Add(new TableCell(new Paragraph(new Run(item.UnitPrice.ToString("C")))));
-                            row.Cells.Add(new TableCell(new Paragraph(new Run((item.Quantity * item.UnitPrice).ToString("C")))));
+                            row.Cells.Add(new TableCell(new Paragraph(new Run(item.Quantity.ToString())) { TextAlignment = TextAlignment.Center }));
+                            row.Cells.Add(new TableCell(new Paragraph(new Run($"{item.UnitPrice:N2} {AppSettings.DefaultCurrencySymbol}")) { TextAlignment = TextAlignment.Center }));
+                            row.Cells.Add(new TableCell(new Paragraph(new Run($"{(item.Quantity * item.UnitPrice):N2} {AppSettings.DefaultCurrencySymbol}")) { TextAlignment = TextAlignment.Center }));
                             itemsTableGroup.Rows.Add(row);
+                            rowIndex++;
                         }
 
-                        var paginator = ((IDocumentPaginatorSource)flowDocument).DocumentPaginator;
-                        var package = Package.Open(new MemoryStream(), FileMode.Create, FileAccess.ReadWrite);
-                        packUri = new Uri("pack://temp.xps");
-                        PackageStore.AddPackage(packUri, package);
-                        xpsDoc = new XpsDocument(package, CompressionOption.NotCompressed, packUri.ToString());
-                        var xpsWriter = XpsDocument.CreateXpsDocumentWriter(xpsDoc);
-                        xpsWriter.Write(paginator);
+                        (flowDocument.FindName("TotalAmountRun") as Run).Text = $"{po.TotalAmount:N2} {AppSettings.DefaultCurrencySymbol}";
+                        string currencyNameAr = "العملة";
+                        string fractionalNameAr = "جزء";
+                        if (companyInfo?.DefaultCurrencyId != null)
+                        {
+                            var defaultCurrency = db.Currencies.Find(companyInfo.DefaultCurrencyId.Value);
+                            if (defaultCurrency != null)
+                            {
+                                currencyNameAr = defaultCurrency.CurrencyName_AR ?? defaultCurrency.Name;
+                                fractionalNameAr = defaultCurrency.FractionalUnit_AR ?? "جزء";
+                            }
+                        }
+                        (flowDocument.FindName("TotalInWordsRun") as Run).Text = Core.Helpers.TafqeetHelper.ToWords(po.TotalAmount, currencyNameAr, fractionalNameAr);
 
-                        var previewWindow = new PrintPreviewWindow(xpsDoc.GetFixedDocumentSequence());
-                        previewWindow.ShowDialog();
+                        tempXpsFile = Path.GetTempFileName();
+                        using (var xpsDoc = new XpsDocument(tempXpsFile, FileAccess.ReadWrite))
+                        {
+                            var paginator = ((IDocumentPaginatorSource)flowDocument).DocumentPaginator;
+                            var xpsWriter = XpsDocument.CreateXpsDocumentWriter(xpsDoc);
+                            xpsWriter.Write(paginator);
+                            var previewWindow = new PrintPreviewWindow(xpsDoc.GetFixedDocumentSequence(), tempXpsFile);
+                            previewWindow.ShowDialog();
+                        }
+                        tempXpsFile = null;
                     }
                 }
-                catch (Exception ex) { MessageBox.Show($"فشلت عملية الطباعة: {ex.Message}", "خطأ"); }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"فشلت عملية الطباعة: {ex.Message}\n\nتأكد من وجود ملف القالب 'PurchaseOrderPrintTemplate.xaml'.", "خطأ");
+                }
                 finally
                 {
-                    xpsDoc?.Close();
-                    if (packUri != null && PackageStore.GetPackage(packUri) != null) { PackageStore.RemovePackage(packUri); }
+                    if (tempXpsFile != null && File.Exists(tempXpsFile))
+                    {
+                        try { File.Delete(tempXpsFile); } catch { }
+                    }
                 }
             }
         }
 
         private void ReceiveGoodsButton_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.DataContext is PurchaseOrder order)
+            if ((sender as Button)?.DataContext is PurchaseOrderViewModel vm)
             {
-                if (order.Status == PurchaseOrderStatus.FullyReceived || order.Status == PurchaseOrderStatus.Cancelled)
-                {
-                    MessageBox.Show("لا يمكن تسجيل استلام لهذا الأمر.", "عملية غير ممكنة", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                var receiveWindow = new AddGoodsReceiptWindow(order.Id);
+                var receiveWindow = new AddGoodsReceiptWindow(vm.Order.Id);
                 if (receiveWindow.ShowDialog() == true)
                 {
                     LoadPurchaseOrders();
@@ -194,20 +247,32 @@ namespace GoodMorningFactory.UI.Views
             }
         }
 
-        // --- بداية التحديث: إضافة دالة إنشاء فاتورة من أمر شراء ---
         private void CreateInvoiceButton_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.DataContext is PurchaseOrder order)
+            if ((sender as Button)?.DataContext is PurchaseOrderViewModel vm)
             {
-                // فتح نافذة تسجيل الفاتورة مع تمرير هوية أمر الشراء
-                var invoiceWindow = new AddEditPurchaseInvoiceWindow(purchaseOrderId: order.Id);
+                // --- بداية الإصلاح ---
+                // 1. التحقق من وجود بضاعة غير مفوترة قبل فتح النافذة
+                using (var db = new DatabaseContext())
+                {
+                    bool hasUninvoicedItems = db.GoodsReceiptNotes
+                        .Any(grn => grn.PurchaseOrderId == vm.Order.Id && !grn.IsInvoiced);
+
+                    if (!hasUninvoicedItems)
+                    {
+                        MessageBox.Show("لا توجد بضاعة مستلمة وغير مفوترة لإنشاء فاتورة لها.", "تنبيه", MessageBoxButton.OK, MessageBoxImage.Information);
+                        return; // الخروج من الدالة وعدم فتح النافذة
+                    }
+                }
+
+                // 2. إذا وجد، يتم فتح النافذة
+                var invoiceWindow = new AddEditPurchaseInvoiceWindow(purchaseOrderId: vm.Order.Id);
                 if (invoiceWindow.ShowDialog() == true)
                 {
-                    // تحديث القائمة بعد إنشاء الفاتورة لتغيير حالة أمر الشراء
                     LoadPurchaseOrders();
                 }
+                // --- نهاية الإصلاح ---
             }
         }
-        // --- نهاية التحديث ---
     }
 }

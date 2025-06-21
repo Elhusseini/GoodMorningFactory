@@ -1,5 +1,5 @@
 ﻿// UI/Views/AddEditSalesOrderWindow.xaml.cs
-// *** تحديث: تم إصلاح منطق تحميل وحفظ بيانات أمر البيع ***
+using GoodMorningFactory.Core.Services;
 using GoodMorningFactory.Data;
 using GoodMorningFactory.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +12,6 @@ using System.Windows.Input;
 
 namespace GoodMorningFactory.UI.Views
 {
-    // Re-using the same ViewModel as Sales Quotation for simplicity
     public class SalesOrderItemViewModel : INotifyPropertyChanged
     {
         public int ProductId { get; set; }
@@ -20,15 +19,17 @@ namespace GoodMorningFactory.UI.Views
         public string Description { get; set; }
 
         private decimal _unitPrice;
-        public decimal UnitPrice { get => _unitPrice; set { _unitPrice = value; OnPropertyChanged(nameof(UnitPrice)); OnPropertyChanged(nameof(Subtotal)); } }
+        public decimal UnitPrice { get => _unitPrice; set { if (_unitPrice != value) { _unitPrice = value; OnPropertyChanged(nameof(UnitPrice)); OnPropertyChanged(nameof(Subtotal)); OnPropertyChanged(nameof(SubtotalFormatted)); } } }
 
         private int _quantity;
-        public int Quantity { get => _quantity; set { _quantity = value; OnPropertyChanged(nameof(Quantity)); OnPropertyChanged(nameof(Subtotal)); } }
+        public int Quantity { get => _quantity; set { if (_quantity != value) { _quantity = value; OnPropertyChanged(nameof(Quantity)); OnPropertyChanged(nameof(Subtotal)); OnPropertyChanged(nameof(SubtotalFormatted)); } } }
 
         private decimal _discount;
-        public decimal Discount { get => _discount; set { _discount = value; OnPropertyChanged(nameof(Discount)); OnPropertyChanged(nameof(Subtotal)); } }
+        public decimal Discount { get => _discount; set { if (_discount != value) { _discount = value; OnPropertyChanged(nameof(Discount)); OnPropertyChanged(nameof(Subtotal)); OnPropertyChanged(nameof(SubtotalFormatted)); } } }
 
         public decimal Subtotal => (UnitPrice * Quantity) - Discount;
+        public string SubtotalFormatted => $"{Subtotal:N2} {AppSettings.DefaultCurrencySymbol}";
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -55,6 +56,7 @@ namespace GoodMorningFactory.UI.Views
             using (var db = new DatabaseContext())
             {
                 CustomerComboBox.ItemsSource = db.Customers.Where(c => c.IsActive).ToList();
+                PriceListComboBox.ItemsSource = db.PriceLists.ToList();
             }
 
             if (_orderId.HasValue) // وضع التعديل
@@ -98,7 +100,7 @@ namespace GoodMorningFactory.UI.Views
                     if (quotation != null)
                     {
                         CustomerComboBox.SelectedValue = quotation.CustomerId;
-                        CustomerComboBox.IsEnabled = false; // لا يمكن تغيير العميل
+                        CustomerComboBox.IsEnabled = false;
                         OrderDatePicker.SelectedDate = DateTime.Today;
                         ShipDatePicker.SelectedDate = DateTime.Today.AddDays(7);
                         OrderNumberTextBox.Text = $"SO-{DateTime.Now:yyyyMMddHHmmss}";
@@ -127,9 +129,9 @@ namespace GoodMorningFactory.UI.Views
             }
         }
 
-        private void SearchProductTextBox_KeyUp(object sender, KeyEventArgs e)
+        private void AddProduct()
         {
-            if (e.Key != Key.Enter) return;
+            if (string.IsNullOrWhiteSpace(SearchProductTextBox.Text)) return;
 
             using (var db = new DatabaseContext())
             {
@@ -140,22 +142,54 @@ namespace GoodMorningFactory.UI.Views
                     if (existingItem != null) { existingItem.Quantity++; }
                     else
                     {
+                        decimal price = product.SalePrice;
+                        if (PriceListComboBox.SelectedValue is int priceListId)
+                        {
+                            var productPrice = db.ProductPrices.FirstOrDefault(pp => pp.PriceListId == priceListId && pp.ProductId == product.Id);
+                            if (productPrice != null)
+                            {
+                                price = productPrice.Price;
+                            }
+                        }
+
                         _items.Add(new SalesOrderItemViewModel
                         {
                             ProductId = product.Id,
                             ProductName = product.Name,
                             Description = product.Description,
                             Quantity = 1,
-                            UnitPrice = product.SalePrice,
+                            UnitPrice = price,
                             Discount = 0
                         });
                     }
                     SearchProductTextBox.Clear();
                 }
+                else
+                {
+                    MessageBox.Show("لم يتم العثور على المنتج.", "بحث", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
         }
 
-        private void UpdateTotal() => TotalAmountTextBlock.Text = $"{_items.Sum(i => i.Subtotal):C}";
+        private void SearchProductTextBox_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                AddProduct();
+                e.Handled = true;
+            }
+        }
+
+        private void AddProductButton_Click(object sender, RoutedEventArgs e)
+        {
+            AddProduct();
+        }
+
+        private void UpdateTotal()
+        {
+            string currencySymbol = Core.Services.AppSettings.DefaultCurrencySymbol;
+            TotalAmountTextBlock.Text = $"{_items.Sum(i => i.Subtotal):N2} {currencySymbol}";
+        }
         private void RemoveItem_Click(object sender, RoutedEventArgs e)
         {
             if ((sender as FrameworkElement)?.DataContext is SalesOrderItemViewModel item) _items.Remove(item);
@@ -171,6 +205,39 @@ namespace GoodMorningFactory.UI.Views
 
             using (var db = new DatabaseContext())
             {
+                var customer = db.Customers.Find((int)CustomerComboBox.SelectedValue);
+                if (customer != null && customer.CreditLimit > 0)
+                {
+                    decimal currentBalance = db.Sales
+                        .Where(s => s.SalesOrder.CustomerId == customer.Id && s.Status != InvoiceStatus.Paid && s.Status != InvoiceStatus.Cancelled)
+                        .Sum(s => s.TotalAmount - s.AmountPaid);
+
+                    decimal newOrderValue = _items.Sum(i => i.Subtotal);
+
+                    if ((currentBalance + newOrderValue) > customer.CreditLimit)
+                    {
+                        string message = $"قيمة هذا الأمر ستؤدي إلى تجاوز حد الائتمان للعميل '{customer.CustomerName}'.\n" +
+                                         $"الرصيد الحالي: {currentBalance:C}\n" +
+                                         $"قيمة الأمر الجديد: {newOrderValue:C}\n" +
+                                         $"الإجمالي: {(currentBalance + newOrderValue):C}\n" +
+                                         $"حد الائتمان: {customer.CreditLimit:C}";
+
+                        if (PermissionsService.CanAccess("Sales.OverrideCreditLimit"))
+                        {
+                            var result = MessageBox.Show($"{message}\n\nهل تريد المتابعة على أي حال؟", "تحذير: تجاوز حد الائتمان", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                            if (result == MessageBoxResult.No)
+                            {
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show($"{message}\n\nليس لديك صلاحية لتجاوز حد الائتمان. لا يمكن حفظ أمر البيع.", "عملية مرفوضة", MessageBoxButton.OK, MessageBoxImage.Error);
+                            return;
+                        }
+                    }
+                }
+
                 SalesOrder order;
                 if (_orderId.HasValue)
                 {

@@ -1,6 +1,4 @@
-﻿// UI/Views/DashboardView.xaml.cs
-// *** تحديث: تم تعيين LabelFormatter من الكود الخلفي مباشرة ***
-using GoodMorningFactory.Data;
+﻿using GoodMorningFactory.Data;
 using GoodMorningFactory.UI.ViewModels;
 using LiveCharts;
 using LiveCharts.Wpf;
@@ -10,6 +8,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Globalization;
+using GoodMorningFactory.Core.Services; // *** بداية التعديل: إضافة using ***
 
 namespace GoodMorningFactory.UI.Views
 {
@@ -19,10 +18,9 @@ namespace GoodMorningFactory.UI.Views
         {
             InitializeComponent();
 
-            // *** بداية التصحيح ***
-            // تعيين تنسيق العملة لمحور المبيعات مباشرة من الكود
-            SalesAxisY.LabelFormatter = value => value.ToString("C", new CultureInfo("ar-KW"));
-            // *** نهاية التصحيح ***
+            // *** بداية التعديل: تعيين تنسيق العملة لمحور المبيعات بناءً على الإعدادات ***
+            SalesAxisY.LabelFormatter = value => $"{value:N0} {AppSettings.DefaultCurrencySymbol}";
+            // *** نهاية التعديل ***
 
             LoadDashboardData();
         }
@@ -73,7 +71,7 @@ namespace GoodMorningFactory.UI.Views
                             .Sum(s => (decimal?)s.TotalAmount) ?? 0;
 
                         salesData.Add(monthlyTotal);
-                        monthLabels.Add(firstDayOfMonth.ToString("MMM yy", new CultureInfo("ar-KW")));
+                        monthLabels.Add(firstDayOfMonth.ToString("MMM yy", new CultureInfo("ar-EG")));
                     }
 
                     viewModel.MonthlySalesSeries = new SeriesCollection
