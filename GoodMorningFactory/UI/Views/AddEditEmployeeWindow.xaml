@@ -1,0 +1,87 @@
+﻿<!-- UI/Views/AddEditEmployeeWindow.xaml -->
+<!-- *** ملف جديد: نافذة إضافة وتعديل ملف موظف *** -->
+<Window x:Class="GoodMorningFactory.UI.Views.AddEditEmployeeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        mc:Ignorable="d" Title="إضافة / تعديل ملف موظف" Height="550" Width="800"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0">
+            <TabItem Header="معلومات شخصية">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" Content="الاسم الأول:"/>
+                    <TextBox x:Name="FirstNameTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="1" Grid.Column="0" Content="اسم العائلة:"/>
+                    <TextBox x:Name="LastNameTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="2" Grid.Column="0" Content="تاريخ الميلاد:"/>
+                    <DatePicker x:Name="DobDatePicker" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="3" Grid.Column="0" Content="الجنس:"/>
+                    <ComboBox x:Name="GenderComboBox" Grid.Row="3" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="4" Grid.Column="0" Content="الجنسية:"/>
+                    <TextBox x:Name="NationalityTextBox" Grid.Row="4" Grid.Column="1" Margin="5"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="معلومات التوظيف">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" Content="كود الموظف:"/>
+                    <TextBox x:Name="EmployeeCodeTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="1" Grid.Column="0" Content="تاريخ التعيين:"/>
+                    <DatePicker x:Name="HireDatePicker" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="2" Grid.Column="0" Content="المسمى الوظيفي:"/>
+                    <TextBox x:Name="JobTitleTextBox" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="3" Grid.Column="0" Content="القسم:"/>
+                    <TextBox x:Name="DepartmentTextBox" Grid.Row="3" Grid.Column="1" Margin="5"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="معلومات الراتب">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" Content="الراتب الأساسي:"/>
+                    <TextBox x:Name="BasicSalaryTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="1" Grid.Column="0" Content="بدل السكن:"/>
+                    <TextBox x:Name="HousingAllowanceTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
+                    <Label Grid.Row="2" Grid.Column="0" Content="بدل المواصلات:"/>
+                    <TextBox x:Name="TransportAllowanceTextBox" Grid.Row="2" Grid.Column="1" Margin="5"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Button Grid.Row="1" Content="💾 حفظ" HorizontalAlignment="Left" Padding="15,5" Margin="5" Click="SaveButton_Click"/>
+    </Grid>
+</Window>

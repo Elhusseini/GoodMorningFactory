@@ -1,0 +1,90 @@
+﻿<!-- UI/Views/InventoryView.xaml -->
+<!-- *** تحديث: تمت إضافة زر "إجراء تعديل مخزون" *** -->
+<UserControl x:Class="GoodMorningFactory.UI.Views.InventoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1000"
+             Background="#F5F5F5" FlowDirection="RightToLeft">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ToolBarTray Grid.Row="0">
+            <ToolBar>
+                <!-- *** بداية التحديث *** -->
+                <Button Content="إجراء تعديل مخزون" Margin="5" Padding="5" Click="AdjustStockButton_Click"/>
+                <Separator/>
+                <!-- *** نهاية التحديث *** -->
+                <TextBlock Text="بحث:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox x:Name="SearchTextBox" Width="200" KeyUp="Filter_KeyUp"/>
+                <TextBlock Text="الفئة:" VerticalAlignment="Center" Margin="5"/>
+                <ComboBox x:Name="CategoryFilterComboBox" Width="150" SelectionChanged="Filter_Changed" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                <TextBlock Text="حالة المخزون:" VerticalAlignment="Center" Margin="5"/>
+                <ComboBox x:Name="StatusFilterComboBox" Width="120" SelectionChanged="Filter_Changed"/>
+                <!-- *** بداية التحديث *** -->
+                <TextBlock Text="المخزن:" VerticalAlignment="Center" Margin="5"/>
+                <ComboBox x:Name="WarehouseFilterComboBox" Width="150" SelectionChanged="Filter_Changed" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                <!-- *** نهاية التحديث *** -->
+            </ToolBar>
+        </ToolBarTray>
+
+        <DataGrid x:Name="InventoryDataGrid" Grid.Row="1" Margin="5" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Status}" Value="LowStock">
+                            <Setter Property="Background" Value="LightGoldenrodYellow"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="OutOfStock">
+                            <Setter Property="Background" Value="MistyRose"/>
+                            <Setter Property="Foreground" Value="DarkRed"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="كود المنتج" Binding="{Binding ProductCode}" Width="*"/>
+                <DataGridTextColumn Header="اسم المنتج" Binding="{Binding ProductName}" Width="2*"/>
+                <DataGridTextColumn Header="الفئة" Binding="{Binding CategoryName}" Width="*"/>
+                <!-- *** بداية التحديث *** -->
+                <DataGridTextColumn Header="المخزن" Binding="{Binding WarehouseName}" Width="*" FontWeight="Bold"/>
+                <!-- *** نهاية التحديث *** -->
+                <DataGridTextColumn Header="الكمية الحالية" Binding="{Binding QuantityOnHand}" Width="*"/>
+                <DataGridTextColumn Header="الكمية المحجوزة" Binding="{Binding QuantityReserved}" Width="*"/>
+                <DataGridTextColumn Header="الكمية المتاحة" Binding="{Binding QuantityAvailable}" Width="*" FontWeight="Bold"/>
+                <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="*"/>
+                <!-- *** بداية التحديث *** -->
+                <DataGridTemplateColumn Header="إجراءات" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="عرض السجل" Click="ViewHistoryButton_Click"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <!-- *** نهاية التحديث *** -->
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Border Grid.Row="2" BorderThickness="0,1,0,0" BorderBrush="LightGray" Padding="5" Margin="0,5,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button x:Name="PreviousPageButton" Content="&lt; السابق" Margin="5,0" Click="PreviousPageButton_Click"/>
+                    <Button x:Name="NextPageButton" Content="التالي &gt;" Margin="5,0" Click="NextPageButton_Click"/>
+                </StackPanel>
+                <TextBlock x:Name="PageInfoTextBlock" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

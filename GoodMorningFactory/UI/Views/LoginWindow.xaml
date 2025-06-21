@@ -1,0 +1,24 @@
+﻿<!-- UI/Views/LoginWindow.xaml -->
+<!-- نافذة تسجيل الدخول -->
+<Window x:Class="GoodMorningFactory.UI.Views.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="تسجيل الدخول - نظام مصنع صباح الخير" Height="350" Width="400"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" FlowDirection="RightToLeft">
+    <Grid>
+        <StackPanel VerticalAlignment="Center" Margin="30">
+            <TextBlock Text="تسجيل الدخول" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+            <Label Content="اسم المستخدم:"/>
+            <TextBox x:Name="UsernameTextBox" Margin="0,0,0,10" Padding="5"/>
+
+            <Label Content="كلمة المرور:"/>
+            <PasswordBox x:Name="PasswordBox" Margin="0,0,0,20" Padding="5"/>
+
+            <Button x:Name="LoginButton" Content="دخول" Padding="10" FontSize="16" Click="LoginButton_Click" IsDefault="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

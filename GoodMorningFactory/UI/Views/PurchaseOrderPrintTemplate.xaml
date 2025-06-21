@@ -1,0 +1,90 @@
+﻿<!-- UI/Views/PurchaseOrderPrintTemplate.xaml -->
+<!-- *** ملف جديد: قالب تصميم أمر الشراء للطباعة *** -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <FlowDocument x:Key="PurchaseOrder" PagePadding="50" ColumnWidth="800" FlowDirection="RightToLeft" FontFamily="Calibri" FontSize="12">
+        <Paragraph TextAlignment="Center" Margin="0,0,0,20">
+            <Run Text="أمر شراء" FontSize="24" FontWeight="Bold"/>
+        </Paragraph>
+
+        <Table Margin="0,20,0,10">
+            <Table.Columns>
+                <TableColumn Width="*"/>
+                <TableColumn Width="*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell>
+                        <Paragraph>
+                            <Run Text="رقم أمر الشراء: "/>
+                            <Run x:Name="PONumberRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                    <TableCell TextAlignment="Left">
+                        <Paragraph>
+                            <Run Text="تاريخ الأمر: "/>
+                            <Run x:Name="OrderDateRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                </TableRow>
+                <TableRow>
+                    <TableCell>
+                        <Paragraph>
+                            <Run Text="المورد: "/>
+                            <Run x:Name="SupplierNameRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                    <TableCell TextAlignment="Left">
+                        <Paragraph>
+                            <Run Text="تاريخ التسليم المتوقع: "/>
+                            <Run x:Name="DeliveryDateRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <Table CellSpacing="0" BorderBrush="Black" BorderThickness="1" Margin="0,20,0,0">
+            <Table.Columns>
+                <TableColumn Width="4*"/>
+                <TableColumn Width="1.5*"/>
+                <TableColumn Width="1.5*"/>
+                <TableColumn Width="2*"/>
+            </Table.Columns>
+            <TableRowGroup x:Name="ItemsTableRowGroup">
+                <TableRow Background="LightGray" FontWeight="Bold">
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph>المنتج/المادة</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph>الكمية</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph>سعر الوحدة</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,0,1" Padding="5">
+                        <Paragraph>الإجمالي الفرعي</Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <Table Margin="0,20,0,0">
+            <Table.Columns>
+                <TableColumn Width="*"/>
+                <TableColumn Width="Auto"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell/>
+                    <TableCell>
+                        <Paragraph FontWeight="Bold">
+                            <Run Text="الإجمالي النهائي: "/>
+                            <Run x:Name="TotalAmountRun"/>
+                        </Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+    </FlowDocument>
+</ResourceDictionary>

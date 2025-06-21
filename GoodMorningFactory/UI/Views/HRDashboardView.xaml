@@ -1,0 +1,59 @@
+﻿<!-- UI/Views/HRDashboardView.xaml -->
+<!-- *** ملف جديد: واجهة عرض لوحة معلومات الموارد البشرية *** -->
+<UserControl x:Class="GoodMorningFactory.UI.Views.HRDashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             mc:Ignorable="d" d:DesignHeight="700" d:DesignWidth="1200"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+             Background="#F5F5F5" FlowDirection="RightToLeft">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="لوحة معلومات الموارد البشرية" FontSize="24" FontWeight="Bold" Margin="5"/>
+
+            <UniformGrid Rows="1" Columns="4" Grid.Row="1">
+                <Border Style="{StaticResource DashboardCardStyle}" Background="#007BFF">
+                    <StackPanel>
+                        <TextBlock Text="إجمالي الموظفين النشطين" Style="{StaticResource DashboardCardTitleStyle}"/>
+                        <TextBlock Text="{Binding TotalActiveEmployees}" Style="{StaticResource DashboardCardValueStyle}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DashboardCardStyle}" Background="#28A745">
+                    <StackPanel>
+                        <TextBlock Text="موظفون جدد (30 يوم)" Style="{StaticResource DashboardCardTitleStyle}"/>
+                        <TextBlock Text="{Binding NewHiresLast30Days}" Style="{StaticResource DashboardCardValueStyle}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DashboardCardStyle}" Background="#DC3545">
+                    <StackPanel>
+                        <TextBlock Text="إنهاء خدمة (30 يوم)" Style="{StaticResource DashboardCardTitleStyle}"/>
+                        <TextBlock Text="{Binding TerminationsLast30Days}" Style="{StaticResource DashboardCardValueStyle}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DashboardCardStyle}" Background="#FFC107">
+                    <StackPanel>
+                        <TextBlock Text="طلبات إجازة معلقة" Style="{StaticResource DashboardCardTitleStyle}"/>
+                        <TextBlock Text="{Binding PendingLeaveRequests}" Style="{StaticResource DashboardCardValueStyle}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <Grid Grid.Row="2" Margin="0,10,0,0">
+                <GroupBox Header="توزيع الموظفين حسب القسم" Grid.Column="0" Margin="5" FontSize="14" FontWeight="Bold">
+                    <lvc:PieChart Series="{Binding DepartmentDistribution}" LegendLocation="Bottom" InnerRadius="50">
+                        <lvc:PieChart.ChartLegend>
+                            <lvc:DefaultLegend BulletSize="20" FontSize="14"/>
+                        </lvc:PieChart.ChartLegend>
+                    </lvc:PieChart>
+                </GroupBox>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,52 @@
+﻿<!-- UI/Views/SalesView.xaml -->
+<!-- الكود الكامل لملف تصميم واجهة فواتير المبيعات -->
+<UserControl x:Class="GoodMorningFactory.UI.Views.SalesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GoodMorningFactory.UI.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="1000"
+             Background="#F5F5F5"
+             FlowDirection="RightToLeft">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ToolBarTray Grid.Row="0">
+            <ToolBar>
+                <Button Content="🧾 فاتورة بيع جديدة" Margin="5" Padding="5" Click="NewSaleButton_Click"/>
+                <Button Content="🖨️ طباعة الفاتورة المحددة" Margin="5" Padding="5" Click="PrintInvoiceButton_Click"/>
+                <Separator/>
+                <TextBlock Text="فلترة حسب الحالة:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                <ComboBox x:Name="StatusFilterComboBox" Width="150" SelectionChanged="StatusFilterComboBox_SelectionChanged"/>
+            </ToolBar>
+        </ToolBarTray>
+
+        <DataGrid x:Name="SalesDataGrid" Grid.Row="1" Margin="0,10,0,0"
+                  IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="رقم الفاتورة" Binding="{Binding InvoiceNumber}" Width="*"/>
+                <DataGridTextColumn Header="رقم أمر البيع" Binding="{Binding SalesOrder.SalesOrderNumber}" Width="*"/>
+                <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="*" FontWeight="Bold"/>
+                <DataGridTextColumn Header="إجمالي المبلغ" Binding="{Binding TotalAmount, StringFormat={}{0:C}}" Width="*"/>
+                <DataGridTextColumn Header="المبلغ المدفوع" Binding="{Binding AmountPaid, StringFormat={}{0:C}}" Width="*"/>
+                <DataGridTextColumn Header="الرصيد المستحق" Binding="{Binding BalanceDue, StringFormat={}{0:C}}" Width="*" FontWeight="Bold"/>
+                <DataGridTemplateColumn Header="إجراءات" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="تعديل" Margin="2" Click="EditButton_Click"/>
+                                <Button Content="تسجيل دفعة" Margin="2" Click="RecordPaymentButton_Click" Background="DarkSeaGreen"/>
+                                <Button Content="إنشاء مرتجع" Margin="2" Click="CreateReturnButton_Click" Background="OrangeRed" Foreground="White"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

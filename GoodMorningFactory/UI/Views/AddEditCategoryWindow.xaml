@@ -1,0 +1,31 @@
+﻿<!-- UI/Views/AddEditCategoryWindow.xaml -->
+<!-- *** ملف جديد: نافذة إضافة وتعديل الفئات *** -->
+<Window x:Class="GoodMorningFactory.UI.Views.AddEditCategoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        mc:Ignorable="d" Title="إضافة / تعديل فئة" Height="250" Width="450"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="اسم الفئة:"/>
+        <TextBox x:Name="NameTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+        <Label Grid.Row="1" Grid.Column="0" Content="الوصف:"/>
+        <TextBox x:Name="DescriptionTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
+        <Label Grid.Row="2" Grid.Column="0" Content="الفئة الأم:"/>
+        <ComboBox x:Name="ParentCategoryComboBox" Grid.Row="2" Grid.Column="1" Margin="5" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+
+        <Button Content="💾 حفظ" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left" Width="100" Margin="5" Click="SaveButton_Click"/>
+    </Grid>
+</Window>

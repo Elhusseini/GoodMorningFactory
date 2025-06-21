@@ -1,0 +1,35 @@
+﻿<!-- UI/Views/MaterialConsumptionWindow.xaml -->
+<!-- الكود الكامل لملف تصميم نافذة تسجيل استهلاك المواد -->
+<Window x:Class="GoodMorningFactory.UI.Views.MaterialConsumptionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="تسجيل استهلاك المواد" Height="500" Width="700"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="أمر العمل" Grid.Row="0">
+            <TextBlock x:Name="WorkOrderNumberTextBlock" FontWeight="Bold" Margin="5"/>
+        </GroupBox>
+
+        <GroupBox Header="المواد المستهلكة" Grid.Row="1" Margin="0,10,0,0">
+            <DataGrid x:Name="MaterialsDataGrid" CanUserAddRows="False" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="المادة الخام" Binding="{Binding MaterialName}" IsReadOnly="True" Width="2*"/>
+                    <DataGridTextColumn Header="الكمية المطلوبة" Binding="{Binding RequiredQuantity, StringFormat=N4}" IsReadOnly="True" Width="*"/>
+                    <DataGridTextColumn Header="المتوفر بالمخزن" Binding="{Binding AvailableQuantity}" IsReadOnly="True" Width="*"/>
+                    <DataGridTextColumn Header="الكمية المستهلكة الآن" Binding="{Binding ConsumedQuantity, StringFormat=N4}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <Button Content="✅ تأكيد الاستهلاك" Grid.Row="2" HorizontalAlignment="Left" Padding="15,5" Margin="5" Click="ConfirmConsumptionButton_Click"/>
+    </Grid>
+</Window>

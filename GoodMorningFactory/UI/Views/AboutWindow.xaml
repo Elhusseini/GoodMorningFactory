@@ -1,0 +1,29 @@
+﻿<!-- UI/Views/AboutWindow.xaml -->
+<!-- نافذة لعرض معلومات عن البرنامج والشركة -->
+<Window x:Class="GoodMorningFactory.UI.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="عن نظام مصنع صباح الخير" Height="400" Width="500"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" FlowDirection="RightToLeft">
+    <Grid>
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" TextBlock.TextAlignment="Center">
+            <Image x:Name="CompanyLogoImage" Height="80" Margin="0,0,0,10" Stretch="Uniform"/>
+
+            <TextBlock x:Name="AppNameTextBlock" Text="نظام مصنع صباح الخير" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="الإصدار 1.0.0" Foreground="Gray" Margin="0,0,0,10"/>
+
+            <Separator Margin="20"/>
+
+            <TextBlock x:Name="CompanyNameTextBlock" FontWeight="Bold" Margin="0,10,0,5"/>
+            <TextBlock x:Name="AddressTextBlock"/>
+            <TextBlock x:Name="PhoneNumberTextBlock"/>
+
+            <TextBlock Text="© 2024. جميع الحقوق محفوظة." Foreground="Gray" Margin="0,20,0,0"/>
+
+            <Button Content="موافق" Width="100" Margin="0,30,0,0" Padding="5" IsDefault="True" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

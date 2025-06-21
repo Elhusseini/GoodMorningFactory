@@ -1,0 +1,39 @@
+﻿<!-- UI/Views/AddEditAccountWindow.xaml -->
+<!-- نافذة إضافة وتعديل حساب -->
+<Window x:Class="GoodMorningFactory.UI.Views.AddEditAccountWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        Title="إضافة حساب جديد" Height="350" Width="450"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize" FlowDirection="RightToLeft">
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="رقم الحساب:" VerticalAlignment="Center"/>
+        <TextBox x:Name="AccountNumberTextBox" Grid.Row="0" Grid.Column="1" Margin="5"/>
+
+        <Label Grid.Row="1" Grid.Column="0" Content="اسم الحساب:" VerticalAlignment="Center"/>
+        <TextBox x:Name="AccountNameTextBox" Grid.Row="1" Grid.Column="1" Margin="5"/>
+
+        <Label Grid.Row="2" Grid.Column="0" Content="نوع الحساب:" VerticalAlignment="Center"/>
+        <ComboBox x:Name="AccountTypeComboBox" Grid.Row="2" Grid.Column="1" Margin="5"/>
+
+        <Label Grid.Row="3" Grid.Column="0" Content="حساب أب:" VerticalAlignment="Center"/>
+        <ComboBox x:Name="ParentAccountComboBox" Grid.Row="3" Grid.Column="1" Margin="5" DisplayMemberPath="AccountName" SelectedValuePath="Id"/>
+
+        <Button Grid.Row="5" Grid.ColumnSpan="2" Content="💾 حفظ" Padding="10,5" HorizontalAlignment="Left" Click="SaveButton_Click"/>
+    </Grid>
+</Window>

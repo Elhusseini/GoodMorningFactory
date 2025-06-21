@@ -1,0 +1,95 @@
+﻿<!-- UI/Views/QuotationPrintTemplate.xaml -->
+<!-- *** ملف جديد: قالب تصميم عرض السعر للطباعة *** -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <FlowDocument x:Key="SalesQuotation" PagePadding="50" ColumnWidth="800" FlowDirection="RightToLeft" FontFamily="Calibri" FontSize="12">
+
+        <Paragraph TextAlignment="Center" Margin="0,0,0,20">
+            <Run Text="عرض سعر" FontSize="24" FontWeight="Bold"/>
+        </Paragraph>
+
+        <Table Margin="0,20,0,10">
+            <Table.Columns>
+                <TableColumn Width="*"/>
+                <TableColumn Width="*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell>
+                        <Paragraph>
+                            <Run Text="رقم العرض: "/>
+                            <Run x:Name="QuotationNumberRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                    <TableCell TextAlignment="Left">
+                        <Paragraph>
+                            <Run Text="التاريخ: "/>
+                            <Run x:Name="QuotationDateRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                </TableRow>
+                <TableRow>
+                    <TableCell>
+                        <Paragraph>
+                            <Run Text="العميل: "/>
+                            <Run x:Name="CustomerNameRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                    <TableCell TextAlignment="Left">
+                        <Paragraph>
+                            <Run Text="صالح حتى: "/>
+                            <Run x:Name="ValidUntilDateRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <Table CellSpacing="0" BorderBrush="Black" BorderThickness="1" Margin="0,20,0,0">
+            <Table.Columns>
+                <TableColumn Width="4*"/>
+                <TableColumn Width="1.5*"/>
+                <TableColumn Width="1.5*"/>
+                <TableColumn Width="1.5*"/>
+                <TableColumn Width="2*"/>
+            </Table.Columns>
+            <TableRowGroup x:Name="ItemsTableRowGroup">
+                <TableRow Background="LightGray" FontWeight="Bold">
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph>المنتج</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph>سعر الوحدة</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph>الكمية</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph>الخصم</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,0,1" Padding="5">
+                        <Paragraph>الإجمالي الفرعي</Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <Table Margin="0,20,0,0">
+            <Table.Columns>
+                <TableColumn Width="*"/>
+                <TableColumn Width="Auto"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell/>
+                    <TableCell>
+                        <Paragraph FontWeight="Bold">
+                            <Run Text="الإجمالي النهائي: "/>
+                            <Run x:Name="TotalAmountRun"/>
+                        </Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+    </FlowDocument>
+</ResourceDictionary>

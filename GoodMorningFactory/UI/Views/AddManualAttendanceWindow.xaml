@@ -1,0 +1,36 @@
+﻿<!-- UI/Views/AddManualAttendanceWindow.xaml -->
+<!-- *** ملف جديد: نافذة التسجيل اليدوي للحضور والانصراف *** -->
+<Window x:Class="GoodMorningFactory.UI.Views.AddManualAttendanceWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        mc:Ignorable="d" Title="تسجيل حضور/انصراف يدوي" Height="300" Width="450"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="الموظف:"/>
+        <ComboBox x:Name="EmployeeComboBox" Grid.Row="0" Grid.Column="1" Margin="5" DisplayMemberPath="FirstName"/>
+
+        <Label Grid.Row="1" Grid.Column="0" Content="التاريخ:"/>
+        <DatePicker x:Name="AttendanceDatePicker" Grid.Row="1" Grid.Column="1" Margin="5"/>
+
+        <Label Grid.Row="2" Grid.Column="0" Content="الوقت (HH:mm):"/>
+        <TextBox x:Name="TimeTextBox" Grid.Row="2" Grid.Column="1" Margin="5"/>
+
+        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="5">
+            <Button Content="✅ تسجيل حضور" Width="120" Margin="5" Padding="5" Click="SignIn_Click"/>
+            <Button Content="❌ تسجيل انصراف" Width="120" Margin="5" Padding="5" Click="SignOut_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

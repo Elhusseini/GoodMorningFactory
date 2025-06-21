@@ -1,0 +1,61 @@
+﻿<!-- UI/Views/AddEditJournalVoucherView.xaml -->
+<!-- *** تحديث: تم إصلاح تخطيط حقول معلومات القيد *** -->
+<Window x:Class="GoodMorningFactory.UI.Views.AddEditJournalVoucherView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        Title="إضافة قيد يومي جديد" Height="600" Width="900"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="معلومات القيد" Grid.Row="0">
+            <!-- *** بداية التصحيح *** -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Content="رقم القيد:"/>
+                <TextBox x:Name="VoucherNumberTextBox" Grid.Row="0" Grid.Column="1" Margin="5" IsReadOnly="True" Background="#EEE"/>
+
+                <Label Grid.Row="0" Grid.Column="2" Content="التاريخ:"/>
+                <DatePicker x:Name="VoucherDatePicker" Grid.Row="0" Grid.Column="3" Margin="5"/>
+
+                <Label Grid.Row="1" Grid.Column="0" Content="الوصف:"/>
+                <TextBox x:Name="DescriptionTextBox" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="5"/>
+            </Grid>
+            <!-- *** نهاية التصحيح *** -->
+        </GroupBox>
+
+        <DataGrid x:Name="VoucherItemsDataGrid" Grid.Row="1" Margin="0,10" AutoGenerateColumns="False" CanUserAddRows="True" CellEditEnding="VoucherItemsDataGrid_CellEditEnding">
+            <DataGrid.Columns>
+                <DataGridComboBoxColumn x:Name="AccountColumn" Header="الحساب" SelectedValueBinding="{Binding AccountId}" SelectedValuePath="Id" DisplayMemberPath="AccountName" Width="3*"/>
+                <DataGridTextColumn Header="مدين" Binding="{Binding Debit, StringFormat=N2}" Width="*"/>
+                <DataGridTextColumn Header="دائن" Binding="{Binding Credit, StringFormat=N2}" Width="*"/>
+                <DataGridTextColumn Header="الوصف" Binding="{Binding Description}" Width="2*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <TextBlock Text="الإجمالي المدين: " FontWeight="Bold"/>
+            <TextBlock x:Name="TotalDebitTextBlock" Text="0.00" FontWeight="Bold"/>
+            <TextBlock Text="  |  الإجمالي الدائن: " FontWeight="Bold" Margin="10,0"/>
+            <TextBlock x:Name="TotalCreditTextBlock" Text="0.00" FontWeight="Bold"/>
+            <Button Content="💾 حفظ القيد" Margin="20,0,0,0" Padding="10,5" Click="SaveButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

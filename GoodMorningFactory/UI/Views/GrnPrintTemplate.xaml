@@ -1,0 +1,70 @@
+﻿<!-- UI/Views/GrnPrintTemplate.xaml -->
+<!-- *** ملف جديد: قالب تصميم مذكرة استلام البضاعة للطباعة *** -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <FlowDocument x:Key="GoodsReceiptNote" PagePadding="50" ColumnWidth="800" FlowDirection="RightToLeft" FontFamily="Calibri" FontSize="12">
+
+        <Paragraph TextAlignment="Center" Margin="0,0,0,20">
+            <Run Text="مذكرة استلام بضاعة (GRN)" FontSize="20" FontWeight="Bold"/>
+        </Paragraph>
+
+        <Table Margin="0,20,0,10">
+            <Table.Columns>
+                <TableColumn Width="*"/>
+                <TableColumn Width="*"/>
+            </Table.Columns>
+            <TableRowGroup>
+                <TableRow>
+                    <TableCell>
+                        <Paragraph>
+                            <Run Text="رقم المذكرة: "/>
+                            <Run x:Name="GrnNumberRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                    <TableCell TextAlignment="Left">
+                        <Paragraph>
+                            <Run Text="تاريخ الاستلام: "/>
+                            <Run x:Name="ReceiptDateRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                </TableRow>
+                <TableRow>
+                    <TableCell>
+                        <Paragraph>
+                            <Run Text="المورد: "/>
+                            <Run x:Name="SupplierNameRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                    <TableCell TextAlignment="Left">
+                        <Paragraph>
+                            <Run Text="أمر الشراء المرتبط: "/>
+                            <Run x:Name="PoNumberRun" FontWeight="Bold"/>
+                        </Paragraph>
+                    </TableCell>
+                </TableRow>
+            </TableRowGroup>
+        </Table>
+
+        <Table CellSpacing="0" BorderBrush="Black" BorderThickness="1" Margin="0,20,0,0">
+            <Table.Columns>
+                <TableColumn Width="2*"/>
+                <TableColumn Width="4*"/>
+                <TableColumn Width="*"/>
+            </Table.Columns>
+            <TableRowGroup x:Name="ItemsTableRowGroup">
+                <TableRow Background="LightGray" FontWeight="Bold">
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph>كود المنتج</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,1,1" Padding="5">
+                        <Paragraph>اسم المنتج</Paragraph>
+                    </TableCell>
+                    <TableCell BorderBrush="Black" BorderThickness="0,0,0,1" Padding="5">
+                        <Paragraph>الكمية المستلمة</Paragraph>
+                    </TableCell>
+                </TableRow>
+                <!-- الصفوف سيتم إضافتها هنا برمجياً -->
+            </TableRowGroup>
+        </Table>
+    </FlowDocument>
+</ResourceDictionary>

@@ -1,0 +1,56 @@
+﻿<!-- UI/Views/InventoryDashboardView.xaml -->
+<!-- *** ملف جديد: واجهة عرض لوحة معلومات المخزون *** -->
+<UserControl x:Class="GoodMorningFactory.UI.Views.InventoryDashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1200"
+             Background="#F5F5F5" FlowDirection="RightToLeft">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="لوحة معلومات المخزون" FontSize="24" FontWeight="Bold" Margin="5"/>
+
+            <!-- الجزء العلوي: بطاقات المؤشرات الرئيسية -->
+            <UniformGrid Rows="1" Columns="3" Grid.Row="1">
+                <Border Style="{StaticResource DashboardCardStyle}" Background="#17A2B8">
+                    <StackPanel>
+                        <TextBlock Text="إجمالي قيمة المخزون" Style="{StaticResource DashboardCardTitleStyle}"/>
+                        <TextBlock Text="{Binding TotalInventoryValue, StringFormat=C}" Style="{StaticResource DashboardCardValueStyle}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DashboardCardStyle}" Background="#FFC107">
+                    <StackPanel>
+                        <TextBlock Text="منتجات منخفضة المخزون" Style="{StaticResource DashboardCardTitleStyle}"/>
+                        <TextBlock Text="{Binding LowStockItems}" Style="{StaticResource DashboardCardValueStyle}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource DashboardCardStyle}" Background="#DC3545">
+                    <StackPanel>
+                        <TextBlock Text="منتجات نفد مخزونها" Style="{StaticResource DashboardCardTitleStyle}"/>
+                        <TextBlock Text="{Binding OutOfStockItems}" Style="{StaticResource DashboardCardValueStyle}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- الجزء السفلي: الرسم البياني -->
+            <Grid Grid.Row="2" Margin="0,10,0,0">
+                <GroupBox Header="توزيع قيمة المخزون حسب الفئة" Grid.Column="0" Margin="5" FontSize="14" FontWeight="Bold">
+                    <lvc:PieChart Series="{Binding ValueByCategorySeries}" LegendLocation="Bottom" InnerRadius="60">
+                        <lvc:PieChart.ChartLegend>
+                            <lvc:DefaultLegend BulletSize="20" FontSize="14"/>
+                        </lvc:PieChart.ChartLegend>
+                    </lvc:PieChart>
+                </GroupBox>
+            </Grid>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

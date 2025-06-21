@@ -1,0 +1,78 @@
+﻿<!-- UI/Views/AddEditWorkOrderWindow.xaml -->
+<!-- *** تحديث: تم إضافة جدول لعرض المواد المطلوبة *** -->
+<Window x:Class="GoodMorningFactory.UI.Views.AddEditWorkOrderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        mc:Ignorable="d"
+        Title="إنشاء / تعديل أمر عمل" Height="750" Width="900"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="معلومات أمر العمل" Grid.Row="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Content="رقم أمر العمل:" VerticalAlignment="Center"/>
+                <TextBox x:Name="WorkOrderNumberTextBox" Grid.Row="0" Grid.Column="1" Margin="5" IsReadOnly="True" Background="#EEE"/>
+
+                <Label Grid.Row="1" Grid.Column="0" Content="المنتج المطلوب إنتاجه:" VerticalAlignment="Center"/>
+                <ComboBox x:Name="FinishedGoodComboBox" Grid.Row="1" Grid.Column="1" Margin="5" DisplayMemberPath="Name" SelectedValuePath="Id" SelectionChanged="FinishedGoodComboBox_SelectionChanged"/>
+
+                <Label Grid.Row="2" Grid.Column="0" Content="الكمية المطلوبة:" VerticalAlignment="Center"/>
+                <TextBox x:Name="QuantityTextBox" Grid.Row="2" Grid.Column="1" Margin="5" TextChanged="QuantityTextBox_TextChanged"/>
+
+                <Label Grid.Row="3" Grid.Column="0" Content="تاريخ البدء المخطط:" VerticalAlignment="Center"/>
+                <DatePicker x:Name="StartDatePicker" Grid.Row="3" Grid.Column="1" Margin="5"/>
+
+                <Label Grid.Row="4" Grid.Column="0" Content="تاريخ الانتهاء المخطط:" VerticalAlignment="Center"/>
+                <DatePicker x:Name="EndDatePicker" Grid.Row="4" Grid.Column="1" Margin="5"/>
+
+                <Label Grid.Row="5" Grid.Column="0" Content="الحالة:" VerticalAlignment="Center"/>
+                <ComboBox x:Name="StatusComboBox" Grid.Row="5" Grid.Column="1" Margin="5" IsEnabled="False" Background="#EEE"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- *** بداية التحديث: استخدام TabControl لعرض التفاصيل *** -->
+        <TabControl Grid.Row="1" Margin="0,10,0,0">
+            <TabItem Header="المواد المطلوبة">
+                <DataGrid x:Name="RequiredMaterialsDataGrid" IsReadOnly="True" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="المادة الخام" Binding="{Binding MaterialName}" Width="2*"/>
+                        <DataGridTextColumn Header="الكمية المطلوبة" Binding="{Binding RequiredQuantity, StringFormat=N4}" Width="*"/>
+                        <DataGridTextColumn Header="المتوفر بالمخزن" Binding="{Binding AvailableQuantity}" Width="*"/>
+                        <DataGridTextColumn Header="الحالة" Binding="{Binding Status}" Width="*" FontWeight="Bold"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem Header="المواد المصروفة">
+                <DataGrid x:Name="ConsumedMaterialsDataGrid" IsReadOnly="True" AutoGenerateColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="المادة الخام" Binding="{Binding MaterialName}" Width="2*"/>
+                        <DataGridTextColumn Header="الكمية المصروفة" Binding="{Binding QuantityConsumed, StringFormat=N4}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
+        <!-- *** نهاية التحديث *** -->
+
+        <Button Content="💾 حفظ أمر العمل" Grid.Row="2" HorizontalAlignment="Left" Padding="15,5" Margin="5" Click="SaveButton_Click"/>
+    </Grid>
+</Window>

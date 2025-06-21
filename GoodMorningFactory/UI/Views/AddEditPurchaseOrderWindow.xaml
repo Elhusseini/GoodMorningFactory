@@ -1,0 +1,50 @@
+﻿<!-- UI/Views/AddEditPurchaseOrderWindow.xaml -->
+<!-- الكود الكامل لتصميم نافذة إضافة وتعديل أمر الشراء -->
+<Window x:Class="GoodMorningFactory.UI.Views.AddEditPurchaseOrderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        mc:Ignorable="d" Title="إنشاء / تعديل أمر شراء" Height="600" Width="900"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        WindowStartupLocation="CenterOwner" FlowDirection="RightToLeft">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="معلومات أمر الشراء" Grid.Row="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" Content="المورد:"/>
+                <ComboBox x:Name="SupplierComboBox" Grid.Column="1" Margin="5" DisplayMemberPath="Name" SelectedValuePath="Id"/>
+                <Label Grid.Column="2" Content="تاريخ الأمر:"/>
+                <DatePicker x:Name="OrderDatePicker" Grid.Column="3" Margin="5"/>
+
+                <!-- *** بداية التحديث *** -->
+                <Label Grid.Row="1" Grid.Column="0" Content="مرجع طلب الشراء:" Visibility="{Binding ElementName=RequisitionRefTextBlock, Path=Visibility}"/>
+                <TextBlock x:Name="RequisitionRefTextBlock" Grid.Row="1" Grid.Column="1" FontWeight="Bold" VerticalAlignment="Center" Margin="5" Visibility="Collapsed"/>
+                <!-- *** نهاية التحديث *** -->
+
+            </Grid>
+        </GroupBox>
+
+        <DataGrid x:Name="OrderItemsDataGrid" Grid.Row="1" Margin="0,10" CanUserAddRows="True" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridComboBoxColumn x:Name="ProductColumn" Header="المنتج/المادة الخام" SelectedValueBinding="{Binding ProductId}" SelectedValuePath="Id" DisplayMemberPath="Name" Width="3*"/>
+                <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity}" Width="*"/>
+                <DataGridTextColumn Header="سعر الوحدة" Binding="{Binding UnitPrice, StringFormat=N2}" Width="*"/>
+                <DataGridTextColumn Header="الوصف" Binding="{Binding Description}" IsReadOnly="True" Width="2*" Foreground="Gray"/>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Button Grid.Row="2" Content="💾 حفظ" HorizontalAlignment="Left" Padding="15,5" Click="SaveButton_Click"/>
+    </Grid>
+</Window>
